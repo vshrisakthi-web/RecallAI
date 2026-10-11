@@ -339,12 +339,37 @@ Settings default + a confirmation dialog). Save to `docs/designs/memory-detail/`
 
 | Design (task)                     | Prompt ready | Prompt committed | Design generated | Export provided | Approved (user) |
 | --------------------------------- | :----------: | :--------------: | :--------------: | :-------------: | :-------------: |
-| Task 1.3 — Overview dashboard     |      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
-| Task 1.4 — Memory Timeline        |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
-| Task 1.5 — Ask RecallAI           |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
-| Task 1.6 — Chrome popup (3 states)|      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
-| Task 1.7 — Companion side panel   |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
-| Task 1.8 — Memory Detail + Privacy|      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
+| Task 1.3 — Overview dashboard     |      ✅      |        ✅        |        ✅        |       ✅        |       ✅        |
+| Task 1.4 — Memory Timeline        |      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
+| Task 1.5 — Ask RecallAI           |      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
+| Task 1.6 — Chrome popup (3 states)|      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
+| Task 1.7 — Companion side panel   |      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
+| Task 1.8 — Memory Detail + Privacy|      ✅      |        ✅        |        ⬜        |       ⬜        |       ⬜        |
+
+**Export locations (organized):**
+
+| Design (task)                  | Export path                                        | Dimensions |
+| ------------------------------ | -------------------------------------------------- | ---------- |
+| Task 1.3 — Overview (approved) | `docs/designs/overview/overview-dashboard.png`     | 1211×1600  |
+| Task 1.4 — Memory Timeline     | `docs/designs/memory-timeline/memory-timeline.png` | 922×1600   |
+| Task 1.5 — Ask RecallAI        | `docs/designs/ask-recallai/ask-recallai.png`       | 980×1600   |
+| Task 1.6 — Chrome popup        | `docs/designs/extension-popup/extension-popup.png` | 2560×1542  |
+| Task 1.7 — Companion side panel| `docs/designs/side-panel/side-panel.png`           | 2560×7278  |
+| Task 1.8 — Memory Detail       | ⬜ **MISSING — user must generate**                | —          |
+| Task 1.8 — Privacy Settings    | ⬜ **MISSING — user must generate**                | —          |
+
+**State coverage (to confirm during review):**
+
+- **Task 1.6 — Chrome popup:** export is a **wide 2560×1542** image; it appears to lay
+  out the three states (Active / Paused / Stopped) side-by-side, matching the prompt's
+  requirement. **Confirm during review** that all three states are clearly present.
+- **Task 1.7 — Companion side panel:** export is a **very tall 2560×7278** image; it
+  appears to stack multiple states/scroll positions (contextual chat, current-page
+  context, related memories, source references). **Confirm during review** that the
+  loading / empty / error states are present, or note which are missing.
+
+> The four non-Overview exports (1.4–1.7) are **generated and organized but NOT
+> approved** — they await your review, exactly like Task 1.3 did before approval.
 
 > "Prompt committed" is filled in after the doc change is committed to `main`. The
 > "Design generated" / "Export provided" columns become ✅ when the user runs Google

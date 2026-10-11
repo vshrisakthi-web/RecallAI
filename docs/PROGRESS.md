@@ -249,15 +249,46 @@ Task 1.9. **No designs exist yet.**
 
 ---
 
-### Task 1.9 — Implement the frontend (NEXT TASK)
+---
 
-**Status:** ⬜ Not started.
+### Milestone — Overview approved + designs 1.4–1.7 generated & organized
+
+**Status:** Done (organization + status recording). **Overview (1.3) approved by the
+user.** The user generated four more Stitch designs and dropped them into
+`docs/designs/overview/`; the agent verified each PNG's content matches its filename
+and **moved** each into its own directory (original bytes preserved, nothing
+overwritten or deleted).
+
+| Task | Export path | Dims | Status |
+| ---- | ----------- | ---- | ------ |
+| 1.3 Overview | `docs/designs/overview/overview-dashboard.png` | 1211×1600 | ✅ **Approved** |
+| 1.4 Memory Timeline | `docs/designs/memory-timeline/memory-timeline.png` | 922×1600 | 🟡 Generated — needs review |
+| 1.5 Ask RecallAI | `docs/designs/ask-recallai/ask-recallai.png` | 980×1600 | 🟡 Generated — needs review |
+| 1.6 Chrome popup | `docs/designs/extension-popup/extension-popup.png` | 2560×1542 | 🟡 Generated — needs review |
+| 1.7 Companion side panel | `docs/designs/side-panel/side-panel.png` | 2560×7278 | 🟡 Generated — needs review |
+| 1.8 Memory Detail | — | — | ⬜ **MISSING — user must generate** |
+| 1.8 Privacy Settings | — | — | ⬜ **MISSING — user must generate** |
+
+**Not approved merely for existing:** Tasks 1.4–1.7 are recorded as **generated, not
+approved** — they still need your review. Task 1.8 has **no exports** and must be
+generated in Google Stitch (prompts 8a/8b are ready in `docs/stitch-prompts.md`).
+
+**State-coverage to confirm on review:** 1.6 popup (wide image — confirm Active/Paused/
+Stopped all present); 1.7 side panel (very tall image — confirm loading/empty/error
+present). Exact missing exports for 1.8 are the two screens named above.
+
+---
+
+### Task 1.9 — Implement the frontend (IN PROGRESS)
+
+**Status:** 🟡 In progress — user authorized full Module 1 completion without
+per-task approval gates.
 
 - **Scope:** Scaffold React + TypeScript (Vite) + Tailwind, then implement the
   dashboard screens, extension popup states, and companion panel using **typed mock
   data**, reusable components, and working navigation.
-- **Design dependency:** use the provided **Overview** export (`docs/designs/overview/
-  overview-dashboard.png`) as the primary visual reference; for screens whose Stitch
-  exports are not yet provided, build from `docs/interface-specification.md` and
-  record that those designs are still pending.
-- Awaiting user approval before starting.
+- **Design dependency:** use the provided **Overview** export as the primary visual
+  reference; Tasks 1.4–1.7 exports are available as references; **Memory Detail &
+  Privacy Settings (1.8) have no exports** — those two screens are built from
+  `docs/interface-specification.md` and recorded as pending design.
+- See the Task 1.9 / 1.10 entries below for implementation + test results.
