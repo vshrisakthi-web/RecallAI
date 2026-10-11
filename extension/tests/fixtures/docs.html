@@ -1,0 +1,21 @@
+<!doctype html>
+<html>
+  <head>
+    <title>HNSW Index — sqlite-vss docs</title>
+  </head>
+  <body>
+    <div id="sidebar"><ul><li>Docs home</li><li>API</li></ul></div>
+    <main>
+      <h1>HNSW Index</h1>
+      <p>The HNSW index builds a navigable small-world graph for approximate nearest neighbor search.</p>
+      <h2>Parameters</h2>
+      <p>The ef parameter controls the size of the dynamic candidate list during search.</p>
+      <p>The M parameter controls the number of bidirectional links created for each element.</p>
+      <h2>Usage</h2>
+      <pre>CREATE VIRTUAL TABLE v USING vss0(embedding(384));</pre>
+      <p>Insert embeddings and query with the vss_search function.</p>
+    </main>
+    <nav>Previous · Next</nav>
+    <div id="comments">User comment spam that should be stripped.</div>
+  </body>
+</html>

@@ -8,7 +8,17 @@ module.exports = {
   parser: '@typescript-eslint/parser',
   parserOptions: { ecmaVersion: 'latest', sourceType: 'module' },
   plugins: ['@typescript-eslint', 'react-hooks', 'react-refresh'],
-  ignorePatterns: ['dist', 'node_modules', '*.config.js', '*.config.ts'],
+  ignorePatterns: [
+    'dist',
+    'node_modules',
+    '*.config.js',
+    '*.config.ts',
+    // Extension build output (generated; minified, uses chrome globals).
+    'extension/dist-extension',
+    'extension/.stage',
+    // Extension build orchestration scripts (plain Node ESM).
+    'extension/scripts',
+  ],
   rules: {
     'react-hooks/rules-of-hooks': 'error',
     'react-hooks/exhaustive-deps': 'warn',
@@ -18,8 +28,14 @@ module.exports = {
   },
   overrides: [
     {
+      // Extension source uses the `chrome` global (provided by Chrome at runtime).
+      files: ['extension/**/*.{ts,tsx}'],
+      globals: { chrome: 'readonly' },
+    },
+    {
       files: ['**/*.test.ts', '**/*.test.tsx'],
       env: { node: true },
     },
   ],
 };
+

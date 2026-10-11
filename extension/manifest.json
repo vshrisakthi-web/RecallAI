@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "RecallAI",
+  "version": "0.2.0",
+  "description": "Privacy-first personal AI memory. Capture pages you choose, stored locally on your device.",
+  "minimum_chrome_version": "102",
+  "action": {
+    "default_popup": "popup/popup.html",
+    "default_title": "RecallAI",
+    "default_icon": {
+      "16": "assets/icon16.png",
+      "48": "assets/icon48.png",
+      "128": "assets/icon128.png"
+    }
+  },
+  "icons": {
+    "16": "assets/icon16.png",
+    "48": "assets/icon48.png",
+    "128": "assets/icon128.png"
+  },
+  "background": {
+    "service_worker": "background/serviceWorker.js"
+  },
+  "permissions": ["activeTab", "scripting", "storage"],
+  "host_permissions": [],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self'; object-src 'self'"
+  }
+}

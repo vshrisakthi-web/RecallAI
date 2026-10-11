@@ -355,3 +355,152 @@ HTTP 200 for index + JS asset.
 - Console-error check was done via the build/test/preview runs, not an interactive
   browser session.
 - Memory Detail + Privacy Settings still lack Stitch design exports (Task 1.8).
+
+---
+
+## Module 2 — Chrome Extension & Capture Engine
+
+### Task 2.1 — Create the Manifest V3 extension — ✅ COMPLETE (code + build)
+
+**What was done:**
+- `extension/manifest.json` — MV3, name RecallAI, `minimum_chrome_version` 102,
+  popup `popup/popup.html`, background service worker
+  `background/serviceWorker.js`, icons 16/48/128, permissions
+  `["activeTab","scripting","storage"]`, `host_permissions: []`,
+  CSP `script-src 'self'; object-src 'self'`.
+- Reproducible build: `npm run build:extension` = icons → popup (Vite+React+
+  Tailwind) → content (IIFE) → background (IIFE) → `assemble.mjs` →
+  `verify-dist.mjs`. Produces `extension/dist-extension/` (git-ignored).
+
+**Verified:** `npm run build:extension` **exit 0**; verify step reports valid MV3,
+all referenced files present, popup assets wired, minimal permissions,
+no `host_permissions`, CSP locked to self.
+
+**Not done:** the extension has **not** been installed/loaded in Chrome by me —
+`docs/module-2-chrome-extension.md` gives the Load-unpacked steps + a manual
+checklist. Live browser verification is the user's step.
+
+---
+
+### Task 2.2 — Icons + popup entry point — ✅ COMPLETE (build-time)
+
+**What was done:**
+- `extension/scripts/gen-icons.mjs` — dependency-free PNG encoder writes valid
+  `assets/icon{16,48,128}.png` (RecallAI mark).
+- `extension/popup/` — React popup (`Popup.tsx`, `index.tsx`, `popup.html`,
+  `popup.css`) matching the approved design language at ~360px wide: branding,
+  active-tab title + domain, capture-state pill (Active/Paused/Stopped), Capture
+  button (+ "Capture only my selected text"), Pause/Resume/Stop controls,
+  recent-captures list, and a privacy footer. No placeholder links.
+
+**Verified:** icons generated; popup builds to `dist-extension/popup/popup.html`
+with wired JS/CSS; Tailwind utilities present (CSS ~9.2 kB, `crossorigin`
+stripped for extension pages).
+
+---
+
+### Task 2.3 — Minimum permissions — ✅ COMPLETE
+
+`activeTab` + `scripting` + `storage` only; **no** `host_permissions`, no
+tabs/history/cookies/downloads. Injection is user-triggered via
+`chrome.scripting.executeScript` on the active tab. Restricted pages
+(`chrome://`, Web Store, PDF viewer, `chrome-extension://`) are detected and
+rejected with a clear message (verified by `domain.test.ts`). No bypass of
+Chrome security; no background surveillance.
+
+---
+
+### Task 2.4 — Detect the active tab — ✅ COMPLETE
+
+`getActiveTab()` → `chrome.tabs.query({active:true,currentWindow:true})` (no
+`tabs` permission needed). Captures title, url, derived domain; timestamp added
+when the record is created (`buildRecord`). Missing tab → `NO_TAB`. Domain
+derivation + restricted detection unit-tested (`domain.test.ts`).
+
+---
+
+### Task 2.5 — Extract permitted readable text — ✅ COMPLETE (unit-tested)
+
+`extension/lib/extract.ts`:
+- Removes `script/style/nav/footer/aside/form/button/input/...` chrome; prefers
+  `<article>`/`<main>`; preserves headings + paragraphs; strips blank runs.
+- **Hard cap** `MAX_TEXT_LENGTH` (20,000 chars) — truncation flagged via
+  `truncated: true`.
+- Preserves source url + title (record built in `capture.ts`).
+- Empty pages → `{ status: 'empty', note }`. No content is uploaded.
+- **Never reads form/password/input values** (removed before capture — asserted
+  in `extract.test.ts`).
+- **YouTube:** flagged by `isYouTubeUrl`; only title/url + visible text captured;
+  transcript is **not** claimed; record marked `partial` with an explicit note.
+
+**Fixtures/tests:** `article.html`, `docs.html`, `empty.html`, `youtube.html`
+driving `extract.test.ts` (A, B, E, size-limit cases).
+
+
+---
+
+### Task 2.6 — User-triggered capture — ✅ COMPLETE (unit-tested)
+
+Capture flow in `serviceWorker.ts` `CAPTURE` case: check state → reject if
+Paused/Stopped → reject restricted → inject content script → extraction → build
+record → save → success summary. Repeated clicks disabled in the popup
+(`phase==='capturing'` guard) and duplicate content de-duped in the repository
+(storage test). Handles empty pages, unsupported pages, injection failures,
+storage errors, missing tab.
+
+---
+
+### Task 2.7 — Capture selected text with context — ✅ COMPLETE (unit-tested)
+
+`EXTRACT_SELECTION` returns selected text + the surrounding block
+(`findSurroundingContext` walks up to `p/li/h*/blockquote/td/pre`). Records are
+typed `selection` with `selectedText` + `surroundingContext`. If nothing is
+selected the worker returns `EMPTY` with guidance to use a full-page capture —
+it never silently substitutes a full-page capture.
+
+---
+
+### Task 2.8 — Capture states — ✅ COMPLETE (unit-tested)
+
+`extension/lib/state.ts` state machine: `active` (capture allowed),
+`paused` (rejected, resume available), `stopped` (disabled, start available).
+Valid transitions + `canCapture` unit-tested (`state.test.ts`). State persisted
+via `chrome.storage.local` (`loadState`/`saveState`, storage test) so the popup
+reflects the real state after close/reopen. Active = user may capture; it is
+**not** continuous monitoring.
+
+---
+
+### Task 2.9 — Message bridge + local storage — ✅ COMPLETE (unit-tested)
+
+- Typed contracts + `isValidMessage` guard in `lib/messages.ts`; invalid messages
+  rejected (`messages.test.ts`).
+- `CaptureRepository` over `chrome.storage.local`: save, recent(limit), byId,
+  delete, state load/save, content de-dup, storage-error handling
+  (`storage.test.ts`).
+- `CaptureRecord` model per spec (id/title/url/domain/capturedAt/captureType/
+  extractedText/selectedText?/surroundingContext?/status/note?/contentLength).
+- Optional **local backend adapter** (`lib/backend.ts`): disabled by default,
+  **localhost-only**, non-fatal; never uploads by default (`backend.test.ts`).
+
+---
+
+### Task 2.10 — Testing — ✅ COMPLETE (automated) / 🟡 manual pending
+
+**Automated (actual results):**
+- `npm run build` → **exit 0** (dashboard unaffected).
+- `npm run typecheck:extension` → **exit 0** (strict TS incl. `@types/chrome`).
+- `npm run lint` → **exit 0** (`--max-warnings 0`; extension dist/scripts ignored,
+  `chrome` global declared for `extension/**`).
+- `npm test` → **exit 0 — 11 files, 44 tests passed** (Module 1: 6 files/13 tests
+  still pass; Module 2: extract A/B/E, state, capture, storage, messages,
+  domain, backend).
+- `npm run build:extension` → **exit 0**; verify step green.
+
+**Manual Chrome verification — NOT done by me (no browser automation here):**
+the exact click-through is in `docs/module-2-chrome-extension.md`
+("Manual verification checklist"). Required user actions: Load unpacked
+`extension/dist-extension`, capture a blog/docs page, test selection, Pause/
+Stop block + Resume/Start restore, state persists across popup close, restricted
+page message, YouTube partial-record note.
+

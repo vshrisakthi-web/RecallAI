@@ -7,11 +7,14 @@
 
 - **Repository location:** `/Users/shrisakthi/projects/RecallAI`
 - **Remote:** `https://github.com/vshrisakthi-web/RecallAI.git` (branch: `main`)
-- **Latest commit:** `48176d2` — "docs: organize Stitch design exports (1.4-1.7); update design status; Task 1.8 pending"
-- **Last updated:** during Module 1 — **Task 1.9 (frontend) and Task 1.10 (testing)
-  COMPLETE.** React + TypeScript (Vite) + Tailwind app built with mock data; build,
-  lint, and 13 tests pass. Overview approved; designs 1.4–1.7 generated (pending
-  review); Task 1.8 designs still missing (user must generate).
+- **Latest commit:** see `git log` — **Module 2 (Chrome extension) committed & pushed
+  on top of Module 1.** (Module 1's last commit was `48176d2`; Overview export
+  `c2efb16`.)
+- **Last updated:** during **Module 2 — Tasks 2.1–2.10 (Chrome extension & capture
+  engine).** A Manifest V3 extension under `extension/` builds a loadable
+  `extension/dist-extension/` (`npm run build:extension`); build, extension
+  typecheck, lint, and **44 tests** (13 Module 1 + 31 Module 2) pass. **Manual Chrome
+  verification is the only outstanding step.** Guide: `docs/module-2-chrome-extension.md`.
 
 ---
 
@@ -74,11 +77,17 @@ Decided (from `docs/mvp-requirements.md`, Section 7) **and now implemented** (Ta
   state library (kept intentionally simple for the MVP).
 - **Testing:** **Vitest 2 + React Testing Library** (`npm test`); ESLint 8
   (`npm run lint`, `--max-warnings 0`).
-- **Extension target (planned, not yet packaged):** Manifest V3 Chrome extension for
-  popup + side panel; currently isolated preview routes to be extracted into real MV3
-  entry points in a later module.
-- **Local persistence (planned):** browser storage — IndexedDB or `localStorage`
-  (not yet wired; mock data only in Module 1).
+- **Extension target (IMPLEMENTED in Module 2):** a **Manifest V3 Chrome extension**
+  under `extension/` — React popup + IIFE content script + MV3 service worker.
+  Built via `npm run build:extension` → `extension/dist-extension/` (Load unpacked).
+  Permissions: `activeTab` + `scripting` + `storage` (no `host_permissions`). The
+  dashboard's `/popup` and `/panel` remain isolated preview routes.
+- **Extension persistence (IMPLEMENTED):** `chrome.storage.local` via
+  `extension/lib/storage.ts` (`CaptureRepository`) for records + capture state.
+  The dashboard still uses mock data (no bridge between the two stores yet —
+  Module 3 candidate).
+- **Local persistence (dashboard, planned):** the dashboard's mock data is not yet
+  backed by IndexedDB/localStorage; no shared bridge to extension storage yet.
 - **AI (planned):** simulated with **mock responses** (visible "Mock answer" badges);
   no external AI services in the MVP.
 - **TypeScript throughout:** type safety enforced (strict `tsconfig`).
@@ -116,8 +125,10 @@ The following are **not decided or not present** and must not be assumed:
 - **Task 1.8 Stitch designs** — Memory Detail + Privacy Settings exports are **missing**
   (prompts 8a/8b ready in `docs/stitch-prompts.md`; user must generate them).
 - **Designs 1.4–1.7** are generated but **not yet approved** (awaiting user review).
-- **Extension packaging/build pipeline** (real MV3 manifest + bundling of `/popup` and
-  `/panel`) — **[UNKNOWN]** (currently isolated preview routes).
-- **Local persistence wiring** (IndexedDB/localStorage) and a **real backend/API** —
-  **[UNKNOWN]** / out of MVP scope.
+- **Extension packaging/build pipeline** — ✅ **IMPLEMENTED in Module 2** (`npm run
+  build:extension`). **Manual Chrome verification is pending** (Load unpacked +
+  checklist). Packaging the companion as a real `chrome.sidePanel` is still a
+  Module 3 candidate.
+- **Dashboard ↔ extension storage bridge** — none yet (dashboard = mock data,
+  extension = `chrome.storage.local`); a Module 3 candidate, not built.
 - **CI pipeline** — none configured.

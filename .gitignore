@@ -8,6 +8,10 @@ dist/
 build/
 *.tsbuildinfo
 
+# Extension build output (generated, loadable separately)
+extension/dist-extension/
+extension/.stage/
+
 # Environment / secrets
 .env
 .env.*
