@@ -279,16 +279,79 @@ present). Exact missing exports for 1.8 are the two screens named above.
 
 ---
 
-### Task 1.9 — Implement the frontend (IN PROGRESS)
+### Task 1.9 — Implement the frontend — ✅ COMPLETE (build + lint + tests pass)
 
-**Status:** 🟡 In progress — user authorized full Module 1 completion without
-per-task approval gates.
+**Status:** Done and verified. React + TypeScript (Vite) + Tailwind app implementing all
+seven surfaces with typed mock data. **Build, lint, and 13 tests all pass.**
 
-- **Scope:** Scaffold React + TypeScript (Vite) + Tailwind, then implement the
-  dashboard screens, extension popup states, and companion panel using **typed mock
-  data**, reusable components, and working navigation.
-- **Design dependency:** use the provided **Overview** export as the primary visual
-  reference; Tasks 1.4–1.7 exports are available as references; **Memory Detail &
-  Privacy Settings (1.8) have no exports** — those two screens are built from
-  `docs/interface-specification.md` and recorded as pending design.
-- See the Task 1.9 / 1.10 entries below for implementation + test results.
+**What was built (all mock data, no backend):**
+- **Scaffold:** Vite + React 18 + TypeScript (strict) + Tailwind CSS + React Router +
+  Vitest + React Testing Library + ESLint. Config: `package.json`, `vite.config.ts`,
+  `tsconfig*.json`, `tailwind.config.js`, `postcss.config.js`, `.eslintrc.cjs`,
+  `index.html`.
+- **Data layer (separate from UI):** `src/data/types.ts` (Memory, CaptureState, ChatTurn,
+  SourceReference, CurrentPageContext, PrivacySettings) and `src/data/mockData.ts`
+  (6 memories, activity summary, suggested questions, `mockAsk()`, seed conversation,
+  page context, default settings). Components import from here — swap for API calls later.
+- **Shared components:** `AppLayout` (sidebar + privacy bar + footer), `MemoryCard`,
+  `SourceBadge`, `StatCard`, `UIStates` (Loading/Empty/Error/NoMatches).
+- **Dashboard screens:** **Overview** (activity summary, search + source filters,
+  Ask quick-access, capture status, recent memories), **Memory Timeline** (search +
+  source + date filters, no-matches state), **Ask RecallAI** (chat history, composer,
+  suggested questions, source citations, loading/error), **Memory Detail** (content,
+  source link, metadata, delete with confirmation, not-found error), **Privacy Settings**
+  (capture prefs, excluded patterns, deletion controls, save).
+- **Extension surfaces (isolated routes):** **Extension popup** (`/popup`) with
+  Active/Paused/Stopped states + capture-this-page; **Companion side panel** (`/panel`)
+  with distinct current-page context, contextual chat, source references, related memories.
+- **State:** `src/state/MemoriesContext.tsx` — deleting a memory reflects across screens.
+- **Mock-AI labelling:** every Ask/panel answer carries a visible **"Mock answer"** badge.
+
+**Design dependency (honest status):** Overview, Memory Timeline, Ask RecallAI, extension
+popup, and side panel follow the **provided Stitch exports**. **Memory Detail and Privacy
+Settings have no Stitch export (Task 1.8 pending)** — those two screens are built from
+`docs/interface-specification.md` and recorded as pending design.
+
+**Files created:** 10 config files + `src/**` (23 files: 2 data, 5 components, 7 pages,
+1 state, 1 layout, 1 lib, 1 css, 1 main/App, 4 tests + setup).
+
+**Verification:** `npm run build` exit 0 (tsc strict + Vite, 49 modules); `npm run lint`
+exit 0 (`--max-warnings 0`); `npm test` → **13 passed / 4 files**; production preview served
+HTTP 200 for index + JS asset.
+
+---
+
+### Task 1.10 — Test and verify the UI — ✅ COMPLETE
+
+**Status:** Done. All configured commands pass.
+
+**Commands executed (actual results):**
+- `npm run build` → **exit 0** — TypeScript strict compile + Vite production build
+  (`dist/index.html` 0.57 kB, CSS 20.65 kB, JS 213.19 kB; 49 modules; built in ~0.9s).
+- `npm run lint` → **exit 0** — ESLint, 0 errors / 0 warnings (`--max-warnings 0`).
+- `npm test` → **exit 0** — Vitest: **4 test files, 13 tests passed** (Overview search,
+  mock-answer labelling + append + error; popup Active→Paused→Stopped→restart; Memory
+  Detail content / not-found error / delete confirmation).
+- `npm run preview` + `curl` → index.html and JS asset both **HTTP 200**; title correct.
+
+**What the tests + manual checks cover:**
+- **Navigation:** all dashboard routes wired via React Router; memory cards open
+  `/memory/:id`; popup/panel are isolated routes; back links present.
+- **Capture-state transitions:** popup Active↔Paused↔Stopped verified in tests.
+- **Search & filters:** Overview + Timeline search and source/date filters (tested).
+- **Mock chat:** Ask/panel append a labelled mock answer; error state simulated.
+- **Memory detail / delete:** content renders, unknown id shows error, delete asks
+  confirmation.
+- **UI states:** Loading (Memory Detail brief load), Empty (no memories / no matches),
+  Error (not-found, simulated assistant failure), No-matches (Timeline), Populated.
+- **Responsive:** layout uses responsive Tailwind classes (sidebar collapses on small
+  screens; grids reflow sm/lg); popup/panel are fixed-width cards.
+- **Quality:** no TypeScript errors, no lint warnings, no failing tests; React Router
+  v7 future-flag warnings silenced via `future` props.
+
+**Known limitations (honest):**
+- No automated **visual/responsive** regression tests — responsive behaviour uses
+  Tailwind classes and was checked structurally, not pixel-tested across devices.
+- Console-error check was done via the build/test/preview runs, not an interactive
+  browser session.
+- Memory Detail + Privacy Settings still lack Stitch design exports (Task 1.8).

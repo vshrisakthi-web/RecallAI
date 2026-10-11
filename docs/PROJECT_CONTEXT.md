@@ -7,11 +7,11 @@
 
 - **Repository location:** `/Users/shrisakthi/projects/RecallAI`
 - **Remote:** `https://github.com/vshrisakthi-web/RecallAI.git` (branch: `main`)
-- **Latest commit:** `c2efb16` — "docs: add Overview dashboard design export"
-- **Last updated:** during Module 1 — Overview design **approved**; Stitch designs
-  1.4–1.7 **generated & organized** into `docs/designs/<screen>/` (pending review);
-  Task 1.8 designs **missing** (user must generate). Frontend implementation
-  (Task 1.9) is **in progress**.
+- **Latest commit:** `48176d2` — "docs: organize Stitch design exports (1.4-1.7); update design status; Task 1.8 pending"
+- **Last updated:** during Module 1 — **Task 1.9 (frontend) and Task 1.10 (testing)
+  COMPLETE.** React + TypeScript (Vite) + Tailwind app built with mock data; build,
+  lint, and 13 tests pass. Overview approved; designs 1.4–1.7 generated (pending
+  review); Task 1.8 designs still missing (user must generate).
 
 ---
 
@@ -60,39 +60,51 @@ navigation, and an ownership matrix per surface). None are built yet.
 
 ## Current Technology Decisions
 
-Decided (from `docs/mvp-requirements.md`, Section 7):
+Decided (from `docs/mvp-requirements.md`, Section 7) **and now implemented** (Task 1.9):
 
-- **Frontend stack:** **React + TypeScript**.
-- **Initial data:** **mock data** in place of a real backend.
-- **Extension target (planned):** Manifest V3 Chrome extension for popup + side
-  panel; web dashboard as a standalone page.
-- **Local persistence (planned):** browser storage — IndexedDB or `localStorage`.
-- **AI (planned):** simulated with **mock responses**; no external AI services in
-  the MVP.
-- **TypeScript throughout:** type safety required from the start.
+- **Frontend stack:** **React 18 + TypeScript (strict)**.
+- **Build tool:** **Vite 5** (`npm run dev` / `npm run build` / `npm run preview`).
+- **Styling:** **Tailwind CSS 3** (`tailwind.config.js`, `postcss.config.js`,
+  `src/index.css`). Custom palette in the config (canvas/surface/brand/safe/warn).
+- **Routing:** **React Router 6** (`src/App.tsx`). Dashboard routes share `AppLayout`;
+  `/popup` and `/panel` are isolated extension-preview routes.
+- **Initial data:** **typed mock data** in `src/data/` (separate from components) in
+  place of a real backend.
+- **State management:** React Context (`src/state/MemoriesContext.tsx`) — no external
+  state library (kept intentionally simple for the MVP).
+- **Testing:** **Vitest 2 + React Testing Library** (`npm test`); ESLint 8
+  (`npm run lint`, `--max-warnings 0`).
+- **Extension target (planned, not yet packaged):** Manifest V3 Chrome extension for
+  popup + side panel; currently isolated preview routes to be extracted into real MV3
+  entry points in a later module.
+- **Local persistence (planned):** browser storage — IndexedDB or `localStorage`
+  (not yet wired; mock data only in Module 1).
+- **AI (planned):** simulated with **mock responses** (visible "Mock answer" badges);
+  no external AI services in the MVP.
+- **TypeScript throughout:** type safety enforced (strict `tsconfig`).
 
 ## Development Workflow
 
-Observed from how the project is being run (no dedicated workflow doc exists):
+Observed from how the project is being run:
 
 - Work proceeds **one task at a time**, organized as **Modules → Tasks**
   (e.g., "Module 1, Task 1.1").
 - **Documentation-first:** requirements/context are written before code.
-- During a task: **no commits or pushes** are made; the user reviews and
-  **approves before moving to the next task**.
-- The initial frontend is built against **mock data** so the UI can be built and
-  demonstrated independently of a backend.
-
-> Specific tooling (package manager, build tool, test runner, lint/format config)
-> is **[UNKNOWN]** — none has been set up yet.
+- **Standard commands:** `npm run dev` (local dev server), `npm run build` (tsc + Vite),
+  `npm run preview` (serve the build), `npm test` (Vitest), `npm run lint` (ESLint).
+- The frontend is built against **mock data** so the UI can be built and demonstrated
+  independently of a backend.
+- The user authorized **autonomous completion of Module 1** (no per-task approval gates),
+  with each task inspected/implemented/tested/documented/verified before being marked
+  complete, and verified work committed + pushed to `origin/main`.
 
 ## Important Constraints / Guardrails
 
 - **Privacy-first:** all personal memory data stays local; transmit nothing
   off-device; use mock/offline AI; no third-party analytics/trackers; be
   transparent to the user.
-- **No application code or packages exist yet.** Nothing is implemented beyond
-  documentation and Git initialization.
+- **Mock AI is always labelled:** Ask RecallAI and the side panel render every answer
+  with a visible "Mock answer" badge; no fake live-AI backend.
 - **Out of scope for MVP** (see `mvp-requirements.md` §8): real AI/LLM calls, cloud
   sync, accounts/auth, teams, mobile apps, non-Chrome browsers, data import/export,
   offline AI models, monetization, analytics.
@@ -101,9 +113,11 @@ Observed from how the project is being run (no dedicated workflow doc exists):
 
 The following are **not decided or not present** and must not be assumed:
 
-- Build tooling for React/TypeScript (e.g., Vite vs. other) — **[UNKNOWN]**.
-- Extension packaging/build pipeline details — **[UNKNOWN]**.
-- State management library — **[UNKNOWN]**.
-- Testing framework — **[UNKNOWN]**.
-- The full Module 1 task list beyond Task 1.2 — **[UNKNOWN]**.
-- Any test suite, CI, or lint configuration — **[UNKNOWN]** (none exists).
+- **Task 1.8 Stitch designs** — Memory Detail + Privacy Settings exports are **missing**
+  (prompts 8a/8b ready in `docs/stitch-prompts.md`; user must generate them).
+- **Designs 1.4–1.7** are generated but **not yet approved** (awaiting user review).
+- **Extension packaging/build pipeline** (real MV3 manifest + bundling of `/popup` and
+  `/panel`) — **[UNKNOWN]** (currently isolated preview routes).
+- **Local persistence wiring** (IndexedDB/localStorage) and a **real backend/API** —
+  **[UNKNOWN]** / out of MVP scope.
+- **CI pipeline** — none configured.
