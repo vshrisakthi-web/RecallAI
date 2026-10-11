@@ -16,6 +16,9 @@
 - **Module 1, Task 1.2 — Define the three interfaces:** ✅ Complete. Produced
   `docs/interface-specification.md` (popup, side panel, and the 5 dashboard screens,
   with an ownership matrix). Documentation only — no code.
+- **Module 1, Task 1.3 — Overview dashboard Stitch prompt:** ✅ Complete (prompt
+  only). Added the Overview prompt to `docs/stitch-prompts.md`. The Google Stitch
+  **design export is still a pending user action** — no design file exists yet.
 
 ## Current state
 
@@ -29,11 +32,20 @@
   extension for popup + side panel; web dashboard as a standalone page. All
   privacy-first, local-only.
 
+## Design workflow (external tool)
+
+- **Google Stitch** (external) is used to generate the six screen designs. The agent
+  writes **prompts** into `docs/stitch-prompts.md`; it **cannot** generate or export
+  the designs. Generating + exporting each design is a **user action**.
+- **Done:** Task 1.3 Overview prompt. **Pending export:** all six designs (see the
+  "Pending designs" table in `docs/stitch-prompts.md`). Task 1.9 will use whatever
+  exports are provided; otherwise it builds from the interface spec and records that
+  Stitch designs are still pending.
+
 ## Next task
 
-- **Module 1, Task 1.3** — Generate the Overview dashboard **Google Stitch design
-  prompt** → record in `docs/stitch-prompts.md`. Note: Stitch is an external tool;
-  only the prompt is written by the agent, the design export requires the user.
+- **Module 1, Task 1.4** — Generate the **Memory Timeline** Google Stitch prompt →
+  record in `docs/stitch-prompts.md`. Stitch export still requires the user.
 
 ## Relevant files to read (in order)
 
