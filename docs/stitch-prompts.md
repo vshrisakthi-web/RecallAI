@@ -34,7 +34,23 @@
 
 ## Task 1.3 — Overview dashboard
 
-**Status:** 🟡 Prompt ready — design **pending** external generation.
+**Status:** 🟢 Prompt committed (`70988c9`); **design generated + export provided** → `docs/designs/overview/overview-dashboard.png` (PNG, 1211×1600). **Design review complete — awaiting your approval (not yet approved).**
+
+**Design review vs. requirements** (`interface-specification.md` §3.1 + the Overview prompt):
+- ✅ **Present:** sidebar nav (Overview active / Memory Timeline / Ask RecallAI /
+  Privacy Settings + "🔒 Data stored locally" chip); memory activity summary (Total
+  Memories, Captured This Week, Sources Connected, Last Ingestion); Recent Memories
+  grid with source badges (Article / Web Link / Markdown Note / Code), domains, dates,
+  "Local SSD" dots; Universal Context Search bar; "Ask RecallAI →" quick-access card;
+  capture status (Active Capture / Pause / Halt); strong privacy indicators (Zero
+  Cloud Telemetry, AES-256 GCM, "Your memories never leave this device").
+- ⚠️ **Not shown / verify in Task 1.9:** **loading** and **empty (first-run)** states,
+  and **tablet-width** responsiveness (only one populated desktop export). These are
+  acceptable gaps — the 1.3 prompt required only a populated state.
+- 📌 **Note for Task 1.9:** the mock shows multi-source connections (Chrome / Obsidian
+  / Slack / VS Code) and a "Local Daemon Running" capture stream. Keep these
+  **mock/illustrative only** — real multi-source sync and background capture are out
+  of MVP scope (mvp §8) and must not imply granted permissions.
 
 ```
 Design the "Overview" landing screen for RecallAI, a privacy-first personal AI
@@ -78,16 +94,262 @@ local-first, single-user tool.
 
 ---
 
+## Task 1.4 — Memory Timeline
+
+**Status:** 🟡 Prompt ready — design **pending** external generation by the user.
+
+```
+Design the "Memory Timeline" screen for RecallAI, a privacy-first personal AI
+memory assistant web dashboard (React + TypeScript, desktop-first, light theme,
+clean modern SaaS style, indigo accent, Inter font, rounded cards, subtle shadows).
+Reuse the SAME persistent left sidebar navigation as the Overview screen: brand
+"RecallAI" at the top; nav items Overview, Memory Timeline (active), Ask RecallAI,
+Privacy Settings; footer chip "🔒 Data stored locally".
+
+MAIN CONTENT — Memory Timeline:
+1. Page header: "Memory Timeline" title + subtitle "All your captured memories,
+   newest first."
+2. A controls bar: a SEARCH box ("Search your memories…") on the left; FILTER
+   controls on the right — a SOURCE TYPE filter (All / Article / Link / Note) and
+   a DATE filter (e.g., Today / This week / This month / All time).
+3. A vertical, CHRONOLOGICAL list of MEMORY CARDS ordered by capture date (newest
+   at the top). Each card shows: title, a 1–2 line memory PREVIEW, a SOURCE badge
+   with icon (Article/Link/Note), the source domain, the capture date, and a small
+   "local" privacy dot. A card click signals it opens the MEMORY DETAIL view.
+4. Selecting a card navigates to the Memory Detail screen.
+
+Show these STATES as clearly separated inset variations of the same screen:
+- POPULATED: the chronological list as described above.
+- LOADING: skeleton placeholder cards.
+- EMPTY (no memories yet): a friendly illustration + "No memories yet — start
+  capturing" + a button back to the Overview/Ask screen.
+- NO SEARCH MATCHES: "No memories match '<query>'" with a clear-filters action.
+- ERROR: a simple, calm error message with a "Try again" button.
+
+Footer privacy strip: "Your memories never leave this device." No login, ads, or
+cloud/sync elements — local-first, single-user. Responsive from desktop to tablet.
+```
+
+**Export needed:** PNG/screenshot of the **populated** state (desktop width) plus the
+empty / loading / no-matches / error states. Save to `docs/designs/memory-timeline/`
+and share with the agent for Task 1.9.
+
+---
+
+## Task 1.5 — Ask RecallAI (chat screen)
+
+**Status:** 🟡 Prompt ready — design **pending** external generation by the user.
+
+```
+Design the "Ask RecallAI" chat screen for RecallAI, a privacy-first personal AI
+memory assistant web dashboard (React + TypeScript, desktop-first, light theme,
+indigo/purple accent, Inter font, rounded cards, subtle shadows). Reuse the SAME
+persistent left sidebar as the Overview screen: brand "RecallAI"; nav items
+Overview, Memory Timeline, Ask RecallAI (active), Privacy Settings; footer chip
+"🔒 Data stored locally". Keep the footer strip "Your memories never leave this
+device. Encrypted on local drive." The "Ask RecallAI" primary panel uses the
+purple/indigo accent card style from the Overview.
+
+MAIN CONTENT — Ask RecallAI:
+1. Page header: "Ask RecallAI" title + subtitle "Query your on-device vault.
+   Answers run 100% locally."
+2. Chat area (CONVERSATION HISTORY): a vertical thread of messages. User questions
+   are right-aligned bubbles; assistant responses are left-aligned ANSWER CARDS.
+3. Each ANSWER CARD shows: the answer text, and a "Sources" section listing SOURCE
+   CITATIONS/REFERENCES. Each source = a source badge with icon (Article / Web Link
+   / Markdown Note / Code), the source title + domain, the capture date, and a small
+   "Local SSD" indicator. Clicking a source opens that memory's detail view.
+4. MOCK LABEL: every answer card carries a clearly visible badge reading
+   "Mock answer" (or "Simulated — mock data") so it is unmistakably distinguished
+   from any future real AI answer.
+5. Question input: a fixed composer at the bottom with placeholder
+   "Ask about your memories…" and a Send button.
+6. SUGGESTED QUESTIONS: shown in the EMPTY state as clickable chips, e.g.
+   "Summarize this week's captures", "What did I save about transformers?",
+   "Find notes tagged #Research".
+
+Show these STATES as clearly separated inset variations:
+- EMPTY: welcome + suggested-question chips.
+- POPULATED: conversation thread with answer cards + source citations.
+- LOADING: an answer card showing a generating/typing indicator
+  ("Synthesizing locally…").
+- ERROR: a calm error message with a "Try again" button.
+
+Guardrails: label all answers as mock; do not depict a live cloud AI; keep source
+references and privacy indicators visible. Responsive from desktop to tablet.
+```
+
+**Export needed:** PNG of the **populated** state plus empty / loading / error
+variations. Save to `docs/designs/ask-recallai/` and share with the agent for Task 1.9.
+
+---
+
+## Task 1.6 — Chrome extension popup (three states)
+
+**Status:** 🟡 Prompt ready — design **pending** external generation by the user.
+
+> Note: this is a compact browser-extension popup (~360px wide), NOT the dashboard
+> sidebar. Keep it small and scannable.
+
+```
+Design RecallAI's Chrome extension popup — a compact card ~360px wide, light theme,
+indigo accent, Inter font, rounded corners, subtle shadow. Show THREE states, clearly
+labelled and separated (stacked or side by side):
+
+ACTIVE
+- Status pill: green dot + "Active Capture".
+- CURRENT WEBSITE INFO: page title + domain, e.g.
+  "arxiv.org — Attention Mechanisms in Lightweight Vision Transformers".
+- Controls: "Pause" and "Stop" (clear, accessible buttons).
+- A short "Recent captures" summary: 2–3 recent memories with source badges.
+
+PAUSED
+- Status pill: amber dot + "Paused".
+- Same current-website info.
+- Controls: "Resume" and "Stop".
+
+STOPPED
+- Status pill: grey dot + "Stopped".
+- Controls: "Start Capture".
+- A hint line: "Capture is off. Start to save this page."
+
+Common elements across all three states:
+- Header: RecallAI logo + a small lock icon + "Data stored locally".
+- A primary "Capture this page" button.
+- Footer links: "Open companion" and a settings/privacy gear icon.
+- Accessibility: sufficient contrast, visible focus states, status shown as TEXT +
+  icon + color (never color-only).
+
+Guardrails: do not imply unrestricted monitoring; only the valid controls for each
+state are enabled. Fixed narrow popup width.
+```
+
+**Export needed:** PNGs of all three states (Active / Paused / Stopped). Save to
+`docs/designs/extension-popup/` and share with the agent for Task 1.9.
+
+---
+
+## Task 1.7 — Companion side panel
+
+**Status:** 🟡 Prompt ready — design **pending** external generation by the user.
+
+> Note: this is a narrow panel docked beside a web page (~360–400px wide), NOT the
+> dashboard. It sits alongside browser content.
+
+```
+Design RecallAI's browser companion SIDE PANEL — a narrow panel ~360–400px wide that
+docks beside a web page. Light theme, indigo accent, Inter font, rounded cards,
+subtle shadows, matching the RecallAI design system (source badges Article / Web
+Link / Markdown Note / Code; small "Local SSD" dots; privacy language).
+
+Layout top-to-bottom:
+1. Header: "RecallAI Companion" + a small lock icon + "100% local".
+2. CURRENT PAGE CONTEXT — a visually DISTINCT tinted card at the top, clearly
+   labelled "Current page": the active page title + domain, plus a
+   "Capture this page" action. Make it obvious this is the live tab, separate from
+   stored memories.
+3. CONTEXTUAL CHAT — a composer ("Ask about this page…") and a conversation thread.
+   Assistant answers are answer cards WITH SOURCE REFERENCES (source badge + title +
+   domain + date), and each carries a "Mock answer" badge.
+4. RELATED MEMORIES — below the chat, a list of relevant stored memories (source
+   badge, title, domain/date, "Local SSD" dot). Tapping one opens its detail view.
+
+Show these STATES as clearly separated inset variations:
+- EMPTY: "No context yet — ask a question or capture this page."
+- LOADING: a generating/typing indicator on the answer card.
+- ERROR: a calm message with a "Try again" button.
+- POPULATED: chat thread + related memories.
+
+Guardrails: keep a CLEAR visual distinction between current-page context and
+previously stored memories; label mock answers; keep the privacy indicator visible.
+Narrow vertical layout.
+```
+
+**Export needed:** PNG of the populated state plus empty / loading / error
+variations. Save to `docs/designs/side-panel/` and share with the agent for Task 1.9.
+
+---
+
+## Task 1.8 — Memory Detail + Privacy Settings
+
+**Status:** 🟡 Prompt ready — design **pending** external generation by the user.
+
+> Two dashboard screens. Reuse the SAME persistent left sidebar as the Overview
+> (brand "RecallAI"; nav Overview, Memory Timeline, Ask RecallAI, Privacy Settings;
+> footer chip "🔒 Data stored locally") and the footer strip "Your memories never
+> leave this device. Encrypted on local drive."
+
+### 8a — Memory Detail
+
+```
+Design the "Memory Detail" screen for RecallAI (React + TypeScript dashboard, light
+theme, indigo accent, Inter font, rounded cards, subtle shadows, same sidebar as
+Overview with "Memory Timeline" context).
+
+MAIN CONTENT — Memory Detail:
+1. Header: the memory TITLE, with a "← Back to Timeline" control.
+2. CONTENT: the memory body / preview text.
+3. SOURCE block: a source-type badge (Article / Web Link / Markdown Note / Code),
+   the source title, and the SOURCE LINK as a clickable URL ("Open source →") with
+   the domain.
+4. METADATA row: capture date, tags/hashtags, a "Local SSD" storage indicator, and
+   any relevant fields (e.g., "OCR & PDF parsed", "Vector: 384 dim") — matching the
+   Overview's card detail style.
+5. ACTIONS: a "Delete memory" button (with a confirmation affordance) and
+   "← Back to Timeline".
+
+Show these STATES as inset variations: POPULATED; LOADING (skeleton); ERROR
+("Memory not found") with a way back to the Timeline.
+```
+
+### 8b — Privacy Settings
+
+```
+Design the "Privacy Settings" screen for RecallAI (React + TypeScript dashboard,
+light theme, indigo accent, Inter font, rounded cards, same sidebar as Overview with
+"Privacy Settings" active).
+
+MAIN CONTENT — Privacy Settings:
+1. Summary banner: "Everything is stored and processed locally; nothing is uploaded."
+2. CAPTURE PREFERENCES: toggles for what gets captured (e.g., visited pages, selected
+   text) — each with a one-line, plain-language explanation of its privacy implication.
+3. CAPTURE STATUS & CONTROLS: current state (Active / Paused / Stopped) with
+   Start / Pause / Stop controls.
+4. EXCLUDED / SENSITIVE-PAGE HANDLING: a list/editor of excluded sites or rules, with
+   an explanation that these are never captured.
+5. MEMORY DELETION CONTROLS: "Delete a memory" and a destructive
+   "Delete all memories" — each behind a clear confirmation/warning.
+6. Each control shows a short explanation of its privacy implication.
+
+Show these STATES as inset variations: default populated controls; a CONFIRMATION
+DIALOG for a destructive action (e.g., "Delete all memories? This cannot be undone.").
+
+Guardrails: do NOT imply unrestricted browser monitoring or permissions not granted;
+label everything as local; keep explanations in plain language. Responsive
+desktop→tablet.
+```
+
+**Export needed:** PNGs of both screens (Memory Detail populated + error; Privacy
+Settings default + a confirmation dialog). Save to `docs/designs/memory-detail/` and
+`docs/designs/privacy-settings/`, and share with the agent for Task 1.9.
+
+---
+
 ## Pending designs (external action required by the user)
 
-| Design (task)                    | Prompt ready | Design generated | Export provided |
-| -------------------------------- | :----------: | :--------------: | :-------------: |
-| Task 1.3 — Overview dashboard    |      ✅      |        ⬜        |       ⬜        |
-| Task 1.4 — Memory Timeline       |      ⬜      |        ⬜        |       ⬜        |
-| Task 1.5 — Ask RecallAI          |      ⬜      |        ⬜        |       ⬜        |
-| Task 1.6 — Chrome popup (3 states)|     ⬜      |        ⬜        |       ⬜        |
-| Task 1.7 — Companion side panel  |      ⬜      |        ⬜        |       ⬜        |
-| Task 1.8 — Memory Detail + Privacy|     ⬜      |        ⬜        |       ⬜        |
+| Design (task)                     | Prompt ready | Prompt committed | Design generated | Export provided | Approved (user) |
+| --------------------------------- | :----------: | :--------------: | :--------------: | :-------------: | :-------------: |
+| Task 1.3 — Overview dashboard     |      ✅      |        ✅        |        ✅        |       ✅        |       ⬜        |
+| Task 1.4 — Memory Timeline        |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
+| Task 1.5 — Ask RecallAI           |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
+| Task 1.6 — Chrome popup (3 states)|      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
+| Task 1.7 — Companion side panel   |      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
+| Task 1.8 — Memory Detail + Privacy|      ✅      |        ⬜        |        ⬜        |       ⬜        |       ⬜        |
 
-> This table is updated as each prompt is written (Tasks 1.4–1.8) and as the user
-> generates/exports each design.
+> "Prompt committed" is filled in after the doc change is committed to `main`. The
+> "Design generated" / "Export provided" columns become ✅ when the user runs Google
+> Stitch and drops the export into `docs/designs/<screen>/` — the agent cannot
+> generate these. "Approved (user)" becomes ✅ only when you explicitly approve the
+> design after review. Design exports live under `docs/designs/` and are the visual
+> reference for Task 1.9.
+

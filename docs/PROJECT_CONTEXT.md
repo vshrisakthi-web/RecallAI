@@ -8,7 +8,8 @@
 - **Repository location:** `/Users/shrisakthi/projects/RecallAI`
 - **Remote:** `https://github.com/vshrisakthi-web/RecallAI.git` (branch: `main`)
 - **Latest commit:** `085886b` — "first commit" (the only commit so far)
-- **Last updated:** during Module 1, Task 1.3 (Overview Stitch prompt written; design pending)
+- **Last updated:** during Module 1, Task 1.3 review (Overview design received +
+  reviewed; awaiting approval. Tasks 1.4–1.8 prompts written, designs pending)
 
 ---
 
