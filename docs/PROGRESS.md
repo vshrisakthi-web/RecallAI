@@ -1,0 +1,94 @@
+# RecallAI — Progress Log
+
+> Running record of completed tasks. Updated after each task. No work is recorded
+> here unless it has actually been done and verified. Source of truth for scope is
+> `docs/mvp-requirements.md`.
+
+---
+
+## Module 1 — Foundation & Requirements
+
+### Task 1.1 — Define MVP Requirements — ✅ COMPLETE
+
+**Status:** Complete (pending nothing; documented and verified by inspection).
+
+**What was done:**
+- Created the `docs/` directory.
+- Created `docs/mvp-requirements.md` documenting: product vision, target users,
+  problem statement, MVP goals, planned surfaces (Chrome extension popup,
+  companion side panel, web dashboard), privacy requirements, technical
+  boundaries, out-of-scope features, and success criteria.
+- Stated the initial frontend will use **React + TypeScript with mock data**.
+- Distinguished **Planned** vs. **Implemented** items (everything app-related is
+  Planned; only docs + Git are Implemented).
+
+**Files created:**
+- `docs/mvp-requirements.md`
+- `docs/` (directory)
+
+**Checks performed:**
+- Confirmed `README.md` unchanged (`# RecallAI`, 1 line).
+- Confirmed no application code, packages, or config were added.
+- Confirmed `docs/mvp-requirements.md` exists and contains all required sections.
+- `git status` reviewed: `docs/` is **untracked**; nothing was committed or pushed.
+
+**Not implemented (still outstanding):**
+- All application functionality — no React components, no mock data layer, no
+  local persistence, no extension packaging, no TypeScript scaffolding.
+- No packages installed; no configuration added.
+
+---
+
+### Task 1.2 — Define the three interfaces — ✅ COMPLETE
+
+**Status:** Complete (documented; implementation not started, as intended for a spec task).
+
+**What was done:**
+- Created `docs/interface-specification.md` defining the three surfaces and their
+  responsibilities, with a shared-vocabulary section and a **responsibility ownership
+  matrix** to avoid duplication.
+- **A. Chrome extension popup** — purpose, primary actions (start/pause/stop capture,
+  capture current page, open companion/settings, search), content (capture status,
+  current website info, recent-memory summary, privacy indicator), the three capture
+  states (`active`/`paused`/`stopped`) with their shown controls, states, navigation,
+  and ownership.
+- **B. Companion side panel** — purpose, primary actions (contextual questions,
+  conversation history, source references, related memories), content separating
+  current-page context from stored memories, loading/empty/error/populated states,
+  navigation, and ownership.
+- **C. Web dashboard** — purpose plus five screens: **Overview, Memory Timeline,
+  Ask RecallAI, Memory Detail, Privacy Settings** — each with content and states; a
+  navigation map; and ownership.
+- Noted the **mock-vs-real** labelling rule for Ask RecallAI (no fake live-AI backend).
+
+**Files created:**
+- `docs/interface-specification.md`
+
+**Files updated (tracking):**
+- `docs/PROGRESS.md`, `docs/PROJECT_CONTEXT.md`, `docs/NEXT_SESSION.md`
+
+**Checks performed:**
+- Confirmed alignment with `docs/mvp-requirements.md` (three surfaces, privacy-first,
+  mock data) and `docs/PROJECT_CONTEXT.md` (React + TypeScript, MV3).
+- No application code, packages, or configuration added (spec-only task).
+- Did not modify `README.md` or `docs/mvp-requirements.md`.
+- `git status` reviewed: no commit or push made yet (awaiting user approval per the
+  agreed task-by-task workflow).
+
+**Not implemented (by design):**
+- No React components, no Stitch designs, no data models yet. This task only
+  *specifies* the interfaces for Tasks 1.3–1.9 to build against.
+
+---
+
+### Task 1.3 — Generate the Overview dashboard design (NEXT TASK)
+
+**Status:** ⬜ Not started.
+
+- **Scope:** Prepare a Google Stitch prompt for the Overview dashboard
+  (navigation, memory activity summary, recent memories, search entry, quick access
+  to Ask RecallAI, capture status, source + privacy indicators) and record it in
+  `docs/stitch-prompts.md`.
+- **External dependency:** Google Stitch is an external tool — I can write the prompt
+  but cannot generate/export the design. The actual design export requires you.
+- Awaiting user approval before starting.
