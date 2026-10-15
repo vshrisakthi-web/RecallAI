@@ -45,6 +45,15 @@ Covered components (all offline, deterministic):
 - **Orchestration & agents** (`test_orchestrator.py`, `test_workflow_schemas.py`,
   `test_e2e_workflow.py`, `test_approval.py`, `test_resilience.py`) — workflow
   transitions, agent failures, tool-argument validation, approval boundaries.
+- **Cross-boundary integration (Task 92)** (`test_integration_lifecycle.py`) —
+  walks one memory through the *real* capture → persist → index → retrieve →
+  delete path (real routes + real services + the disposable SQLite DB), asserting
+  idempotent ingestion, 422 validation leaves no partial rows, cascade deletion of
+  chunks/vectors, deleted memories never reappearing in retrieval, and that an
+  unrelated query returns no evidence. Only the embedding model boundary is faked
+  (deterministic local transport; no network/model). Workflow (Task 92 D) and MCP
+  (Task 92 E) are covered by `test_e2e_workflow.py` and `test_mcp*` respectively
+  and are intentionally not duplicated here.
 - **MCP** (`test_mcp*`) — tool registration, argument schemas, error propagation.
 - **Voice** (`test_voice_api.py`, `test_transcript.py`) — injectable
   subprocess runner; no model download or worker process in tests.
@@ -101,7 +110,7 @@ cd backend && .venv-mcp/bin/python -m pytest -p no:warnings -q
 npm test
 ```
 
-Expected: **671 passed, 2 skipped** (backend) and **86 passed** (frontend), both
+Expected: **676 passed, 2 skipped** (backend) and **86 passed** (frontend), both
 exit code 0. The 2 backend skips are real-model smoke tests that require the
 ML environment / a running model and are intentionally environment-gated.
 
