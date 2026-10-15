@@ -1,156 +1,183 @@
-import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { useEffect, useState } from 'react';
 import MemoryCard from '../components/MemoryCard';
-import { EmptyState, NoMatchesState } from '../components/UIStates';
-import { useMemories } from '../state/MemoriesContext';
-import type { SourceType } from '../data/types';
+import { EmptyState, ErrorState, LoadingState, NoMatchesState } from '../components/UIStates';
+import { listMemories } from '../lib/memoriesApi';
+import type { Memory } from '../data/types';
 
-const sourceOptions: Array<{ value: 'all' | SourceType; label: string }> = [
-  { value: 'all', label: 'All sources' },
-  { value: 'article', label: 'Article' },
-  { value: 'web-link', label: 'Web Link' },
-  { value: 'markdown-note', label: 'Markdown Note' },
-  { value: 'code', label: 'Code' },
-];
-
-const dateOptions = [
-  { value: 'all', label: 'Any time' },
-  { value: 'today', label: 'Today' },
-  { value: 'week', label: 'This week' },
-];
-
-/**
- * Memory Timeline — the full chronological browse view with search, a source-type
- * filter, and a date filter. Cards open the Memory Detail view.
- */
+/** Memory Timeline — real records are always loaded from the local API. */
 export default function MemoryTimeline() {
-  const { memories } = useMemories();
+  const [memories, setMemories] = useState<Memory[]>([]);
+  const [total, setTotal] = useState(0);
+  const [totalPages, setTotalPages] = useState(0);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
   const [query, setQuery] = useState('');
-  const [source, setSource] = useState<'all' | SourceType>('all');
-  const [date, setDate] = useState('all');
+  const [fromDate, setFromDate] = useState('');
+  const [toDate, setToDate] = useState('');
+  const [domain, setDomain] = useState('');
+  const [sourceType, setSourceType] = useState('');
+  const [page, setPage] = useState(1);
+  const [refreshToken, setRefreshToken] = useState(0);
+  const pageSize = 12;
+  const hasFilters = Boolean(query.trim() || fromDate || toDate || domain.trim() || sourceType);
 
-  const filtered = useMemo(() => {
-    let list = memories;
-    if (source !== 'all') list = list.filter((m) => m.sourceType === source);
-    if (query.trim()) {
-      const q = query.toLowerCase();
-      list = list.filter(
-        (m) =>
-          m.title.toLowerCase().includes(q) ||
-          m.excerpt.toLowerCase().includes(q) ||
-          m.sourceName.toLowerCase().includes(q) ||
-          m.tags.join(' ').toLowerCase().includes(q),
-      );
-    }
-    if (date === 'today') list = list.filter((m) => m.capturedLabel.startsWith('Today'));
-    // 'week' keeps everything: all mock data is within the current week.
-    return list;
-  }, [memories, source, query, date]);
+  useEffect(() => {
+    const controller = new AbortController();
+    setLoading(true);
+    setError('');
+    listMemories(
+      {
+        q: query.trim(),
+        from_date: fromDate,
+        to_date: toDate,
+        domain: domain.trim(),
+        source_type: sourceType as 'browser' | 'transcript' | 'note' | undefined,
+        page,
+        page_size: pageSize,
+      },
+      controller.signal,
+    )
+      .then((result) => {
+        setMemories(result.items);
+        setTotal(result.total);
+        setTotalPages(result.total_pages);
+      })
+      .catch((requestError: unknown) => {
+        if (!controller.signal.aborted) {
+          setError(requestError instanceof Error ? requestError.message : 'Could not load memories.');
+        }
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
+    return () => controller.abort();
+  }, [query, fromDate, toDate, domain, sourceType, page, pageSize, refreshToken]);
 
-  const hasQuery = query.trim().length > 0 || source !== 'all' || date !== 'all';
+  const setFilter = (setter: (value: string) => void, value: string) => {
+    setter(value);
+    setPage(1);
+  };
 
   return (
     <div className="mx-auto max-w-5xl">
       <div className="mb-6">
         <h1 className="text-2xl font-bold text-ink">Memory Timeline</h1>
         <p className="mt-1 text-sm text-ink-muted">
-          Browse everything you have captured, newest first. All items stay on this device.
+          Browse locally stored captures, transcripts, and notes.
         </p>
       </div>
 
-      {/* Search + filters */}
       <div className="mb-6 rounded-2xl border border-slate-100 bg-surface p-4 shadow-card">
-        <div className="grid gap-3 md:grid-cols-[1fr_auto_auto]">
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <div>
-            <label htmlFor="timeline-search" className="sr-only">
-              Search memories
-            </label>
+            <label htmlFor="timeline-search" className="sr-only">Search memories</label>
             <input
               id="timeline-search"
               type="search"
               value={query}
-              onChange={(e) => setQuery(e.target.value)}
-              placeholder="Search by title, source, or tag"
+              onChange={(event) => setFilter(setQuery, event.target.value)}
+              placeholder="Search titles and saved content"
               className="w-full rounded-xl border border-slate-200 bg-white px-4 py-2.5 text-sm text-ink placeholder:text-slate-400 focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
             />
           </div>
           <div>
-            <label htmlFor="timeline-source" className="sr-only">
-              Filter by source
-            </label>
+            <label htmlFor="timeline-source" className="sr-only">Filter by source type</label>
             <select
               id="timeline-source"
-              value={source}
-              onChange={(e) => setSource(e.target.value as 'all' | SourceType)}
+              value={sourceType}
+              onChange={(event) => setFilter(setSourceType, event.target.value)}
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-ink focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
             >
-              {sourceOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
+              <option value="">All source types</option>
+              <option value="browser">Browser capture</option>
+              <option value="transcript">Transcript</option>
+              <option value="note">Manual note</option>
             </select>
           </div>
           <div>
-            <label htmlFor="timeline-date" className="sr-only">
-              Filter by date
-            </label>
-            <select
-              id="timeline-date"
-              value={date}
-              onChange={(e) => setDate(e.target.value)}
+            <label htmlFor="timeline-domain" className="sr-only">Filter by domain</label>
+            <input
+              id="timeline-domain"
+              value={domain}
+              onChange={(event) => setFilter(setDomain, event.target.value)}
+              placeholder="Filter by domain"
               className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-ink focus:border-brand-500 focus:outline-none focus:ring-2 focus:ring-brand-100"
-            >
-              {dateOptions.map((o) => (
-                <option key={o.value} value={o.value}>
-                  {o.label}
-                </option>
-              ))}
-            </select>
+            />
+          </div>
+          <div>
+            <label htmlFor="timeline-from-date" className="mb-1 block text-xs text-ink-muted">From date</label>
+            <input
+              id="timeline-from-date"
+              type="date"
+              value={fromDate}
+              onChange={(event) => setFilter(setFromDate, event.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-ink"
+            />
+          </div>
+          <div>
+            <label htmlFor="timeline-to-date" className="mb-1 block text-xs text-ink-muted">To date</label>
+            <input
+              id="timeline-to-date"
+              type="date"
+              value={toDate}
+              onChange={(event) => setFilter(setToDate, event.target.value)}
+              className="w-full rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-sm text-ink"
+            />
           </div>
         </div>
         <div className="mt-3 flex items-center justify-between text-xs text-ink-muted">
-          <span>
-            {filtered.length} {filtered.length === 1 ? 'memory' : 'memories'}
-          </span>
-          {hasQuery && (
+          <span>{total} {total === 1 ? 'memory' : 'memories'}</span>
+          {hasFilters && (
             <button
               type="button"
               onClick={() => {
                 setQuery('');
-                setSource('all');
-                setDate('all');
+                setSourceType('');
+                setDomain('');
+                setFromDate('');
+                setToDate('');
+                setPage(1);
               }}
               className="font-medium text-brand-700 hover:underline"
-            >
-              Clear filters
-            </button>
+            >Clear filters</button>
           )}
         </div>
       </div>
 
-      {/* Results */}
-      {memories.length === 0 ? (
+      {loading ? (
+        <LoadingState label="Loading saved memories…" />
+      ) : error ? (
+        <ErrorState message={error} onRetry={() => setRefreshToken((value) => value + 1)} />
+      ) : total === 0 && hasFilters ? (
+        <NoMatchesState query={query || domain || 'current filters'} />
+      ) : total === 0 ? (
         <EmptyState
           title="No memories yet"
-          description="Captured pages, notes, and links will appear here in chronological order."
-          action={
-            <Link
-              to="/overview"
-              className="rounded-lg bg-brand-700 px-4 py-2 text-sm font-medium text-white hover:bg-brand-600"
-            >
-              Back to Overview
-            </Link>
-          }
+          description="Browser captures, transcripts, and manual notes saved to this device will appear here."
         />
-      ) : filtered.length === 0 ? (
-        <NoMatchesState query={query || 'current filters'} />
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2">
-          {filtered.map((m) => (
-            <MemoryCard key={m.id} memory={m} />
-          ))}
-        </div>
+        <>
+          <div className="grid gap-4 sm:grid-cols-2">
+            {memories.map((memory) => <MemoryCard key={memory.id} memory={memory} />)}
+          </div>
+          <div className="mt-6 flex items-center justify-between">
+            <span className="text-sm text-ink-muted">Page {page} of {totalPages}</span>
+            <div className="flex gap-2">
+              <button
+                type="button"
+                disabled={page <= 1}
+                onClick={() => setPage((value) => Math.max(1, value - 1))}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >Previous</button>
+              <button
+                type="button"
+                disabled={page >= totalPages}
+                onClick={() => setPage((value) => value + 1)}
+                className="rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm disabled:cursor-not-allowed disabled:opacity-50"
+              >Next</button>
+            </div>
+          </div>
+        </>
       )}
     </div>
   );

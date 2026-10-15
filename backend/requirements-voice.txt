@@ -1,0 +1,22 @@
+# RecallAI — Module 9 voice worker dependencies (Python 3.12, isolated).
+#
+# This file installs ONLY into backend/.venv-voice. The FastAPI app in
+# backend/.venv-mcp never imports anything listed here; it talks to the worker
+# through a subprocess boundary (see backend/app/services/stt.py), so the
+# 549-test runtime environment stays untouched and this heavier stack can be
+# upgraded or removed independently.
+#
+# STT engine: faster-whisper (CTranslate2). Runs on CPU with int8 quantization,
+# which suits the target machine (Apple M4, 24 GB RAM, no GPU) without CUDA or
+# Metal toolchains. Models download on first use to the local Hugging Face cache
+# and are then served fully offline — consistent with the privacy posture that
+# no audio or transcript ever leaves the device.
+faster-whisper==1.2.1
+
+# Audio decoding, in Python — no system ffmpeg required (explicitly chosen over
+# a Homebrew install). soundfile (libsndfile) decodes wav/flac/ogg; PyAV decodes
+# the container MediaRecorder actually produces in browsers (webm/opus on
+# Chromium, mp4/AAC on Safari). The worker tries soundfile first, then av.
+soundfile==0.13.1
+av==16.0.1
+numpy<2.3

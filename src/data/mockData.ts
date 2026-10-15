@@ -25,6 +25,9 @@ export const sourceMeta: Record<
   'web-link': { label: 'Web Link', icon: '🔗', badgeClass: 'bg-teal-50 text-teal-700 ring-teal-200' },
   'markdown-note': { label: 'Markdown Note', icon: '📝', badgeClass: 'bg-violet-50 text-violet-700 ring-violet-200' },
   code: { label: 'Code', icon: '💻', badgeClass: 'bg-emerald-50 text-emerald-700 ring-emerald-200' },
+  browser: { label: 'Browser capture', icon: '🌐', badgeClass: 'bg-blue-50 text-blue-700 ring-blue-200' },
+  transcript: { label: 'Transcript', icon: '🎙️', badgeClass: 'bg-amber-50 text-amber-700 ring-amber-200' },
+  note: { label: 'Manual note', icon: '📝', badgeClass: 'bg-teal-50 text-teal-700 ring-teal-200' },
 };
 
 /** The mock memory set. Ordered newest-first to match the Overview/Timeline. */

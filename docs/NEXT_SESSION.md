@@ -1,4 +1,4 @@
-# Next Session — Handoff
+# Next Session
 
 > A short note so the next ChatGPT/Cline session can resume context quickly.
 > Read `docs/PROJECT_CONTEXT.md` and `docs/mvp-requirements.md` before acting.
@@ -7,8 +7,8 @@
 
 - **Working directory:** `/Users/shrisakthi/projects/RecallAI`
 - **Remote:** `https://github.com/vshrisakthi-web/RecallAI.git` (branch: `main`)
-- **Latest commit:** see `git log` — Module 2 (Chrome extension) is committed &
-  pushed on top of Module 1. Module 1's last commit was `c2efb16`.
+- **Latest commit:** `8785317` on `main` and `origin/main` (Module 2). Modules 3–5
+  work is local and uncommitted; review `git status` before staging or committing.
 
 ## Completed tasks
 
@@ -70,27 +70,61 @@ See `docs/module-2-chrome-extension.md` for the full guide.
 
 ## Current state
 
-- **Module 1 UI (dashboard)** is built and passing: `npm run build`, `npm run lint`
-  (0 warnings), `npm test` (Module 1's 13 tests). Routes: Overview, Timeline,
-  Ask, Memory Detail, Privacy Settings, plus isolated `/popup` and `/panel`
-  previews.
-- **Module 2 Chrome extension** is implemented and builds loadable output:
-  - `npm run build:extension` → `extension/dist-extension/` (Load unpacked).
-  - `npm run typecheck:extension` → exit 0; `npm test` → **44 tests** (13 Module 1
-    + 31 Module 2) pass; `npm run lint` → exit 0.
-- **Manual Chrome verification is pending** — Load unpacked
-  `extension/dist-extension` and run the checklist in
-  `docs/module-2-chrome-extension.md`.
+- **Dashboard:** Memory Timeline and Detail use FastAPI/SQLite; Overview and mock-AI
+  surfaces still use sample data. API failures on Timeline/Detail do not fall back to
+  samples.
+- **Chrome extension:** Manifest V3 build passes with required `activeTab`,
+  `scripting`, and `storage`; the popup offers optional localhost sync to
+  `127.0.0.1:8000`, disabled by default.
+- **Manual Chrome check pending:** load `extension/dist-extension`, enable local API
+  sync and approve the optional loopback permission, then capture a page and verify it
+  reaches the API/Timeline. The actual Chrome permission/capture flow was not run.
+- **Module 5:** Tasks 5.1–5.10 **complete** — the `POST
+  /api/v1/memories/{memory_id}/summary` endpoint summarizes via a **local
+  Ollama model over loopback only** (`OllamaSummarizationService`) — no cloud
+  provider is contacted and no credentials exist on this path; non-loopback
+  base URLs are rejected before any request. The earlier Gemini config/service
+  remain with their tests but **no runtime route imports them**. **Live-verified
+  2026-10-11:** Ollama 0.40.3 (Homebrew, `brew services`) + model
+  `llama3.2:1b` (pinned in git-ignored `backend/.env`) produced a real summary
+  through FastAPI in ~3 s; start uvicorn with `--env-file .env` or the model
+  name falls back to the `llama3.2` default and the endpoint 503s. The Memory
+  Detail screen now has a user-initiated “Generate AI Summary” button. See
+  `docs/module-5-local-ai-summarization.md`. Still unverified: a fully offline
+  run (user must disable internet) and a manual UI click-through.
+- **Latest checks:** backend pytest **132 passed**, `npm test` **54 passed**;
+  `npm run lint`, `npm run build`, `npm run typecheck:extension`, and
+  `npm run build:extension` all exit 0. Existing warnings are documented in
+  `docs/module-4-structured-memory.md`.
 - Commands: `npm run dev`, `npm run build`, `npm run preview`, `npm test`,
   `npm run lint`, `npm run typecheck:extension`, `npm run build:extension`,
-  `npm run icons:extension`.
-- `README.md` is still just `# RecallAI`.
+  `npm run icons:extension`, and from `backend/` `.venv/bin/alembic upgrade head`
+  before `.venv/bin/uvicorn app.main:app --reload --host 127.0.0.1 --port 8000`.
+- `README.md` documents Modules 3–4 and the current run/test commands.
 - `docs/` contains: `mvp-requirements.md`, `interface-specification.md`,
   `PROJECT_CONTEXT.md`, `PROGRESS.md`, `NEXT_SESSION.md`, `stitch-prompts.md`,
-  **`module-2-chrome-extension.md`**, and `designs/` (5 organized PNGs).
+  `module-2-chrome-extension.md`, `module-3-ingestion-pipeline.md`,
+  `module-4-structured-memory.md`, and `designs/` (5 organized PNGs).
 - Stack: **React 18 + TypeScript (strict) + Vite 5 + Tailwind 3 + React Router 6 +
   Vitest/RTL** for the dashboard; the extension is a **separate MV3 build** under
   `extension/` (React popup + IIFE content/background). Privacy-first, local-only.
+
+## Stack Snapshot
+
+- **Frontend:** React 18 + TypeScript (strict) + Vite 5 + Tailwind CSS 3 + React Router 6
+- **Backend:** FastAPI + SQLAlchemy 2.x + Alembic (Python 3.9-compatible environment)
+- **Extension:** Manifest V3 Chrome extension (capture engine + React popup)
+- **Data storage:** `backend/data/recallai.db` (SQLite, git-ignored). The JSON store
+  remains only as a legacy import source.
+- **Testing:** Vitest/RTL (54 tests), backend pytest (132 tests), lint, build, extension
+  typecheck/build
+
+## Completed tasks
+
+- **Module 1** – MVP requirements, interface specifications, and dashboard design
+- **Module 2** – Chrome extension (Manifest V3) and companion side panel
+- **Module 3** – Local ingestion pipeline (FastAPI + normalization + deduplication)
+- **All backend tests passing** (111/111)
 
 ## Design workflow (external tool)
 
@@ -114,25 +148,61 @@ See `docs/module-2-chrome-extension.md` for the full guide.
   only outstanding step** (the user must Load unpacked `extension/dist-extension`
   and run the checklist). Do not mark 2.10's manual Chrome verification complete
   until the user (or a browser test) confirms it.
-- **Recommended next steps:**
-  1. **User verifies the extension in Chrome** using
-     `docs/module-2-chrome-extension.md`.
-  2. **User reviews designs 1.4–1.7** and (optionally) generates **Task 1.8**
-     designs (Memory Detail 8a + Privacy Settings 8b).
-  3. **Module 3 (not started, [UNKNOWN])** — likely a **local persistence +
-     retrieval bridge** so the dashboard can read `chrome.storage.local` records
-     (or a localhost service the optional adapter targets), and/or packaging the
-     companion as a real Chrome side panel (`chrome.sidePanel`). Awaiting the
-     user's Module 3 definition.
+- **Module 3** — ingestion validation/normalization remains canonical; SQLite is now
+  the durable backend store. The JSON source was absent during migration check; a
+  repeatable explicit importer is available for any legacy file.
+- **Module 4** — SQLite schema/migration, source/memory repositories, persistent
+  ingestion, FTS5/fallback search, filters, detail/source/delete APIs, and API-backed
+  Timeline/Detail are implemented and tested. See
+  `docs/module-4-structured-memory.md`.
+- **Module 5:** Tasks 5.1–5.10 complete, including live local inference (Ollama
+  0.40.3 + `llama3.2:1b`, ~3 s real summary through FastAPI) and the frontend
+  “Generate AI Summary” integration with loading/error/stale-response
+  handling. The summary endpoint uses a local, loopback-only Ollama service
+  (non-loopback URLs are rejected before any request, and no credentials
+  exist on the path); automated verification used fake/no-network transport
+  (`backend/tests/test_ollama_summarization.py`, 19 service tests;
+  `backend/tests/test_summary_api.py`, 14 endpoint tests;
+  `backend/tests/test_summarization.py`, 16 retained Gemini tests — full
+  backend suite **132 passed**; frontend suite **54 passed**). Outstanding
+  (user-actionable): fully offline run and a manual UI click-through, both
+  documented in `docs/module-5-local-ai-summarization.md`.
+- **Module 6 (Tasks 6.1–6.10): ✅ COMPLETE (verified 2026-10-12).** RAG
+  retrieval end to end: chunking + FTS-backed chunk store, local
+  `nomic-embed-text` embeddings (loopback-only, injectable transport),
+  SQLite vector store with cosine scan, temporal parsing, semantic
+  retrieval, hybrid BM25+cosine with RRF fusion, `POST /api/v1/ask`
+  (evidence-only responses, no generated prose) plus the two indexing
+  routes, confidence scoring (none/weak/strong), evidence-grounded prompt
+  builder with citation ids and an evidence budget, frontend wiring
+  (`askRecallAi()` → real backend, no mocks), and a deterministic
+  synthetic evaluation dataset with Recall@k / Precision@k / MRR.
+  Full ledger in `docs/PROGRESS.md` (Module 6 section). Final
+  verification: backend **344 passed**, frontend **59 passed**, tsc and
+  lint clean. Two defects fixed during verification: unreachable dead
+  code in `evaluation.py`, and `AskRequest.from_date`/`to_date` being
+  accepted but never applied (now wired through route → hybrid service →
+  `effective_window`, with 6 new tests).
+- **Module 4 re-verified (2026-10-11, this session):** a temporary-database end-to-end
+  run passed 26/26 API checks (ingest → dedupe → search/filter/pagination → detail →
+  delete → restart persistence). Backend suite now **99 passed**; frontend/extension
+  **50 passed**; lint/build/typecheck exit 0.
+- **Manual step still pending:** load `extension/dist-extension` in Chrome, enable
+  “Send captures to local RecallAI API,” approve the optional loopback permission, and
+  capture a page. Automated browser verification exercised API-created records through
+  Timeline/detail/delete, but did not click through the Chrome extension.
 
 ## Relevant files to read (in order)
 
-1. `README.md` — project title.
-2. `docs/mvp-requirements.md` — source of truth for scope and boundaries.
-3. `docs/interface-specification.md` — the three interfaces + ownership matrix.
-4. `docs/PROJECT_CONTEXT.md` — condensed context and decisions.
-5. `docs/PROGRESS.md` — what is done vs. pending (Tasks 1.1–1.10).
-6. `src/App.tsx` — routes; `src/data/` — mock data + types; `src/pages/` — the screens.
+1. `README.md` — project overview
+2. `docs/mvp-requirements.md` — source of truth for scope and boundaries
+3. `docs/interface-specification.md` — the three interfaces + ownership matrix
+4. `docs/PROJECT_CONTEXT.md` — condensed context and decisions
+5. `docs/PROGRESS.md` — what is done vs. pending (Tasks 1.1–1.10)
+6. `src/App.tsx` — routes; `src/data/` — mock data + types; `src/pages/` — the screens
+7. `docs/module-4-structured-memory.md` — active SQLite/API/frontend behavior
+8. `docs/module-3-ingestion-pipeline.md` — historical Module 3 ingestion contract
+9. `backend/` — FastAPI ingestion and structured-memory API
 
 ## How to continue
 
@@ -140,8 +210,10 @@ See `docs/module-2-chrome-extension.md` for the full guide.
   task was inspected/implemented/tested/documented/verified before being marked done.
 - Do **not** invent scope, completed work, tests, or functionality — record only what is
   verified; mark the rest **[UNKNOWN]**.
-- Commit + push verified work to `origin/main` after each coherent milestone. Never
-  force-push, rewrite history, or commit secrets/node_modules/build output/.DS_Store.
+- Do not commit or push the current local work until the user reviews the complete
+  diff and chooses how to separate Module 3 from Module 4. Never force-push, rewrite
+  history, or commit secrets, local databases, private captures, `node_modules`, build
+  output, or `.DS_Store`.
 - After each task, update `docs/PROGRESS.md` and refresh `docs/PROJECT_CONTEXT.md` /
   `docs/NEXT_SESSION.md`.
 - **Remaining external dependency:** Task 1.8 designs (Memory Detail + Privacy

@@ -3,7 +3,14 @@
 // contract between the mock data layer today and a future real backend/API.
 
 /** The kind of thing a memory was captured from. Drives the source badge + icon. */
-export type SourceType = 'article' | 'web-link' | 'markdown-note' | 'code';
+export type SourceType =
+  | 'article'
+  | 'web-link'
+  | 'markdown-note'
+  | 'code'
+  | 'browser'
+  | 'transcript'
+  | 'note';
 
 /** A single stored memory item. In the MVP this is mock data only. */
 export interface Memory {
@@ -27,6 +34,15 @@ export interface Memory {
   localOnly: boolean;
   /** Optional per-source extraction note, e.g. "OCR & PDF parsed". */
   extractNote?: string;
+  sourceId?: string;
+  domain?: string;
+  sourceMetadata?: Record<string, unknown>;
+  captureType?: string;
+  selectedText?: string;
+  surroundingContext?: string;
+  extractionStatus?: string;
+  requestId?: string;
+  contentHash?: string;
 }
 
 /** Capture state shared by the extension popup and side panel. */

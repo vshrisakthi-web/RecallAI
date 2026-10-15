@@ -4,6 +4,7 @@ const navItems = [
   { to: '/overview', label: 'Overview', icon: '▦' },
   { to: '/timeline', label: 'Memory Timeline', icon: '〰' },
   { to: '/ask', label: 'Ask RecallAI', icon: '✦' },
+  { to: '/workflow', label: 'Workflow Review', icon: '✅' },
   { to: '/privacy', label: 'Privacy Settings', icon: '🔒' },
 ];
 

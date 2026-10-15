@@ -10,6 +10,9 @@ import type { CaptureRecord, CaptureState, TabInfo } from '../types';
  */
 
 type Phase = 'idle' | 'capturing';
+const BACKEND_STORAGE_KEY = 'recallai.backend';
+const BACKEND_ORIGIN = 'http://127.0.0.1:8000/*';
+const BACKEND_ENDPOINT = 'http://127.0.0.1:8000/api/v1/ingest/browser';
 
 const statePill: Record<CaptureState, string> = {
   active: 'bg-safe-100 text-safe-700',
@@ -30,6 +33,8 @@ export default function Popup() {
   const [phase, setPhase] = useState<Phase>('idle');
   const [message, setMessage] = useState<{ kind: 'ok' | 'err'; text: string } | null>(null);
   const [selectionMode, setSelectionMode] = useState(false);
+  const [syncEnabled, setSyncEnabled] = useState(false);
+  const [syncLoading, setSyncLoading] = useState(true);
 
   const domain = useMemo(() => {
     try {
@@ -53,6 +58,52 @@ export default function Popup() {
   useEffect(() => {
     void refresh();
   }, [refresh]);
+
+  useEffect(() => {
+    void Promise.all([
+      chrome.storage.local.get(BACKEND_STORAGE_KEY),
+      chrome.permissions.contains({ origins: [BACKEND_ORIGIN] }),
+    ])
+      .then(([bag, permissionGranted]) => {
+        const config = bag[BACKEND_STORAGE_KEY] as { enabled?: boolean } | undefined;
+        const enabled = config?.enabled === true && permissionGranted;
+        setSyncEnabled(enabled);
+        if (config?.enabled && !permissionGranted) {
+          return chrome.storage.local.set({
+            [BACKEND_STORAGE_KEY]: { endpoint: BACKEND_ENDPOINT, enabled: false },
+          });
+        }
+        return undefined;
+      })
+      .catch(() => setMessage({ kind: 'err', text: 'Could not read local API settings.' }))
+      .finally(() => setSyncLoading(false));
+  }, []);
+
+  const setLocalApiSync = async (enabled: boolean) => {
+    try {
+      if (!enabled) {
+        await chrome.storage.local.set({
+          [BACKEND_STORAGE_KEY]: { endpoint: BACKEND_ENDPOINT, enabled: false },
+        });
+        setSyncEnabled(false);
+        setMessage(null);
+        return;
+      }
+
+      const granted = await chrome.permissions.request({ origins: [BACKEND_ORIGIN] });
+      if (!granted) {
+        setMessage({ kind: 'err', text: 'Local API permission was not granted. Captures remain local.' });
+        return;
+      }
+      await chrome.storage.local.set({
+        [BACKEND_STORAGE_KEY]: { endpoint: BACKEND_ENDPOINT, enabled: true },
+      });
+      setSyncEnabled(true);
+      setMessage({ kind: 'ok', text: 'Local API sync is enabled for future captures.' });
+    } catch {
+      setMessage({ kind: 'err', text: 'Could not update local API settings. Captures remain local.' });
+    }
+  };
 
   const setCaptureState = async (next: CaptureState) => {
     const res = await send<'SET_STATE'>({ type: 'SET_STATE', state: next });
@@ -222,6 +273,23 @@ export default function Popup() {
         )}
       </section>
 
+      {/* Optional local API delivery: permission is requested only after explicit opt-in. */}
+      <section className="mx-4 mb-3 rounded-xl border border-slate-100 p-3">
+        <label className="flex cursor-pointer items-center justify-between gap-3 text-xs font-medium text-ink">
+          <span>Send captures to local RecallAI API</span>
+          <input
+            type="checkbox"
+            checked={syncEnabled}
+            disabled={syncLoading}
+            onChange={(event) => void setLocalApiSync(event.target.checked)}
+            className="h-4 w-4 rounded border-slate-300"
+          />
+        </label>
+        <p className="mt-1 text-xs text-ink-muted">
+          Optional. Sends only to this device at 127.0.0.1:8000 after capture.
+        </p>
+      </section>
+
       {/* Recent captures */}
       <section className="border-t border-slate-100 px-4 py-3">
         <div className="mb-2 flex items-center justify-between">
@@ -249,8 +317,8 @@ export default function Popup() {
 
       {/* Footer */}
       <footer className="flex items-center justify-between border-t border-slate-100 px-4 py-3 text-xs text-ink-muted">
-        <span>🔒 Your memories never leave this device.</span>
-        <span>AES-256 GCM</span>
+        <span>{syncEnabled ? 'Local API sync enabled.' : 'Captures stay in local storage.'}</span>
+        <span>Local-first</span>
       </footer>
     </div>
   );

@@ -7,11 +7,9 @@ import type { Memory } from '../data/types';
  * Memory Detail route. Purely presentational — data comes from props.
  */
 export default function MemoryCard({ memory }: { memory: Memory }) {
-  return (
-    <Link
-      to={`/memory/${memory.id}`}
-      className="group block rounded-2xl border border-slate-100 bg-surface p-5 shadow-card transition hover:border-brand-100 hover:shadow-md focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500"
-    >
+  const cardClass = 'group block rounded-2xl border border-slate-100 bg-surface p-5 shadow-card transition hover:border-brand-100 hover:shadow-md';
+  const content = (
+    <>
       <div className="mb-3 flex items-center justify-between">
         <SourceBadge type={memory.sourceType} />
         <span className="inline-flex items-center gap-1 text-xs font-medium text-safe-700">
@@ -40,6 +38,16 @@ export default function MemoryCard({ memory }: { memory: Memory }) {
       {memory.extractNote && (
         <p className="mt-3 text-xs italic text-slate-400">{memory.extractNote}</p>
       )}
+    </>
+  );
+
+  if (!memory.sourceId) return <article className={cardClass}>{content}</article>;
+  return (
+    <Link
+      to={`/memory/${memory.id}`}
+      className={`${cardClass} focus:outline-none focus-visible:ring-2 focus-visible:ring-brand-500`}
+    >
+      {content}
     </Link>
   );
 }

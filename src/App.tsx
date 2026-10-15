@@ -4,6 +4,7 @@ import Overview from './pages/Overview';
 import MemoryTimeline from './pages/MemoryTimeline';
 import MemoryDetail from './pages/MemoryDetail';
 import AskRecallAI from './pages/AskRecallAI';
+import WorkflowReview from './pages/WorkflowReview';
 import PrivacySettings from './pages/PrivacySettings';
 import ExtensionPopup from './pages/ExtensionPopup';
 import CompanionSidePanel from './pages/CompanionSidePanel';
@@ -22,6 +23,7 @@ export default function App() {
         <Route path="/overview" element={<Overview />} />
         <Route path="/timeline" element={<MemoryTimeline />} />
         <Route path="/ask" element={<AskRecallAI />} />
+        <Route path="/workflow" element={<WorkflowReview />} />
         <Route path="/memory/:id" element={<MemoryDetail />} />
         <Route path="/privacy" element={<PrivacySettings />} />
       </Route>

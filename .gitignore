@@ -36,3 +36,21 @@ coverage/
 # Misc
 *.local
 .cache/
+
+# Backend (Python)
+backend/.venv/
+backend/.venv-mcp/
+backend/.venv-voice/
+backend/.venv-ft/
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Local ingestion data — never committed
+backend/data/
+*.db
+*.db-journal
+*.db-wal
+*.db-shm
+*.sqlite
+*.sqlite3

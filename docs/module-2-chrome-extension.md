@@ -3,8 +3,12 @@
 This module turns the approved Module 1 UI into a **working Chrome Manifest V3
 extension** that captures useful, permitted page content on an explicit user
 action, stores it locally, and exposes Active / Paused / Stopped states. It has
-**no production AI, no backend, and no automatic surveillance** — capture is
-always user-triggered, and nothing is uploaded by default.
+**no production AI and no automatic surveillance** — capture is always
+user-triggered, and backend sync remains opt-in.
+
+> **Module 4 update:** the local FastAPI/SQLite backend is now available. The
+> popup can optionally send future captures to its loopback ingestion endpoint;
+> see `docs/module-4-structured-memory.md` for the current end-to-end contract.
 
 ## Architecture
 
@@ -61,7 +65,8 @@ extension/
 | `activeTab` | Temporary access to the current tab **only after** the user invokes the extension. No persistent all-sites access. |
 | `scripting` | To inject the content script into the active tab on demand. |
 | `storage` | To persist capture records and state in `chrome.storage.local`. |
-| `host_permissions` | **Intentionally empty.** We never request broad URL access. |
+| `host_permissions` | Required host permission list stays empty. |
+| `optional_host_permissions` | Only `http://127.0.0.1:8000/*`; requested after the user enables local API sync in the popup. |
 
 CSP for extension pages is locked to `script-src 'self'; object-src 'self'` — no
 remote code. `minimum_chrome_version` is 102.
@@ -136,6 +141,9 @@ behaviour must be checked in Chrome (no browser automation is available here):
 - [ ] On a `chrome://` or Web Store page → a clear "restricted by Chrome" message.
 - [ ] On a YouTube watch page → a partial record with an explicit note that no
       transcript was captured.
+- [ ] Enable **Send captures to local RecallAI API** in the popup and approve the
+  optional `127.0.0.1:8000` permission. Capture a page; verify it remains in
+  Recent captures and appears in `GET /api/v1/memories` and the web Timeline.
 
 ## Known limitations
 
@@ -144,24 +152,25 @@ behaviour must be checked in Chrome (no browser automation is available here):
   marked `partial` with a note. This is honest by design.
 - **No browser-automation test** is wired here; Chrome verification is manual
   (checklist above). Automated tests cover the engine logic.
-- **No persistence beyond `chrome.storage.local`** (survives popup close, but
-  that is the scope for this module).
-- **Backend sync is optional and localhost-only**, disabled by default.
+- **Primary extension persistence is `chrome.storage.local`** (survives popup
+  close). If explicitly enabled, a second local copy is sent to the Module 4 API.
+- **Backend sync is optional and loopback-only**, disabled by default; actual Chrome
+  permission and capture behavior remains a manual verification step.
 - The popup and the companion side panel share logic but the side panel is still
   previewed in the dashboard (`/panel`); packaging it as a separate Chrome side
-  panel (`chrome.sidePanel`) is a possible Module 3 enhancement.
+  panel (`chrome.sidePanel`) remains future work.
 
 ## Backend integration status
 
-No backend exists. `extension/lib/backend.ts` is an **isolated adapter** that,
-only when `{ endpoint, enabled: true }` is stored under `recallai.backend` and
-the endpoint is localhost, will POST a record. It never uploads by default and
-treats failures as non-fatal. No endpoint is invented or assumed.
+`extension/lib/backend.ts` remains an **isolated adapter**. The popup stores a fixed
+`http://127.0.0.1:8000/api/v1/ingest/browser` endpoint under `recallai.backend` only
+after explicit user opt-in and Chrome permission approval. Capture is saved locally
+first; the POST is non-fatal. The automated build/tests pass, but an actual Chrome
+permission grant and page capture have not yet been verified.
 
 ## Next recommended module
 
-Wire a **local persistence + retrieval layer** the dashboard can read (a shared
-bridge from `chrome.storage.local` to the dashboard, or a localhost service the
-optional adapter targets), and/or package the companion as a real Chrome side
-panel. Backend/Module 3 scope is intentionally undefined here.
+Module 4 now provides local SQLite persistence and a real Timeline. Finish the
+manual Chrome verification above before treating the Chrome-to-Timeline route as
+verified. Packaging the companion as a real Chrome side panel remains future work.
 

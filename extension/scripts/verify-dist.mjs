@@ -79,6 +79,10 @@ for (const p of perms) {
 if ((manifest.host_permissions ?? []).length > 0) {
   errors.push('host_permissions should be empty (use activeTab + scripting instead)');
 }
+const optionalHosts = manifest.optional_host_permissions ?? [];
+if (optionalHosts.some((host) => host !== 'http://127.0.0.1:8000/*')) {
+  errors.push('optional_host_permissions may only include the explicit local RecallAI API origin');
+}
 
 // 5. No remote code / remote scripts.
 const csp = manifest.content_security_policy?.extension_pages ?? '';
@@ -97,5 +101,6 @@ console.log('  - manifest.json valid (MV3)');
 console.log('  - all referenced files present');
 console.log('  - popup assets wired');
 console.log('  - permissions minimal:', perms.join(', ') || '(none)');
-console.log('  - no host_permissions, CSP locked to self');
+console.log('  - no required host permissions; optional localhost API permission only');
+console.log('  - CSP locked to self');
 console.log('  Load unpacked from:', dist);

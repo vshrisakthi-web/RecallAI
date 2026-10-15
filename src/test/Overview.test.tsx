@@ -27,6 +27,9 @@ describe('Overview dashboard', () => {
     expect(
       screen.getByText(/Attention Mechanisms in Lightweight Vision Transformers/i),
     ).toBeInTheDocument();
+    expect(
+      screen.queryByRole('link', { name: /Attention Mechanisms in Lightweight Vision Transformers/i }),
+    ).not.toBeInTheDocument();
   });
 
   it('filters memories by search query', async () => {

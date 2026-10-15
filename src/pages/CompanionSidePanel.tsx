@@ -1,37 +1,62 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { currentPageContext, mockAsk } from '../data/mockData';
-import { useMemories } from '../state/MemoriesContext';
+import { currentPageContext } from '../data/mockData';
+import { askRecallAi } from '../lib/memoriesApi';
+import type { AskEvidence, AskResult, RetrievalConfidence } from '../lib/memoriesApi';
 
 /**
- * Companion side panel — a narrow ~380px panel docked beside the page. Shows the
- * CURRENT PAGE CONTEXT (visually distinct from stored memories), contextual chat
- * with source references + "Mock answer" badges, and related memories.
+ * Companion side panel — a narrow ~380px panel docked beside the page.
+ *
+ * Shows the CURRENT PAGE CONTEXT (visually distinct from stored memories) and
+ * answers questions with **retrieved evidence**, not generated prose. The
+ * backend does not write answers, so the panel never fabricates one: it shows
+ * which stored passages matched and how strongly.
  *
  * Isolated preview route (/panel). In a real build this becomes the Manifest V3
- * side-panel entry point. Answers are mock — no live AI backend.
+ * side-panel entry point.
  */
-export default function CompanionSidePanel() {
-  const { memories } = useMemories();
-  const [question, setQuestion] = useState('');
-  const [answer, setAnswer] = useState<null | { text: string; refs: string[] }>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState(false);
+const CONFIDENCE_LABEL: Record<RetrievalConfidence, { text: string; className: string }> = {
+  none: { text: 'No matching memories', className: 'bg-slate-100 text-ink-muted' },
+  weak: { text: 'Weak evidence', className: 'bg-warn-100 text-warn-700' },
+  strong: { text: 'Strong evidence', className: 'bg-safe-100 text-safe-700' },
+};
 
-  const related = memories.slice(0, 3);
+export default function CompanionSidePanel() {
+  const [question, setQuestion] = useState('');
+  const [result, setResult] = useState<AskResult | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Aborts the in-flight request so a stale response cannot overwrite a newer one.
+  const inFlight = useRef<AbortController | null>(null);
+  useEffect(() => () => inFlight.current?.abort(), []);
 
   const ask = () => {
     const q = question.trim();
-    if (!q || loading) return;
-    setError(false);
+    if (!q || loading) return; // guard against duplicate submissions
+    inFlight.current?.abort();
+    const controller = new AbortController();
+    inFlight.current = controller;
+
+    setError(null);
+    setResult(null);
     setLoading(true);
-    window.setTimeout(() => {
-      const turn = mockAsk(q, memories);
-      setAnswer({ text: turn.answer, refs: turn.references.map((r) => r.title) });
-      setQuestion('');
-      setLoading(false);
-    }, 400);
+    setQuestion('');
+
+    askRecallAi({ question: q }, controller.signal)
+      .then((answer) => {
+        if (!controller.signal.aborted) setResult(answer);
+      })
+      .catch((err: unknown) => {
+        if (controller.signal.aborted) return;
+        setError(err instanceof Error ? err.message : 'Retrieval failed. Please try again.');
+      })
+      .finally(() => {
+        if (!controller.signal.aborted) setLoading(false);
+      });
   };
+
+  const related = (result?.evidence ?? []).slice(0, 3);
 
   return (
     <div className="flex min-h-screen items-start justify-center bg-canvas p-6">
@@ -60,8 +85,8 @@ export default function CompanionSidePanel() {
         </div>
 
         <div className="flex-1 space-y-4 px-4 py-4">
-          {/* Chat / answer */}
-          {answer === null && !loading && !error && (
+          {/* Retrieved evidence */}
+          {result === null && !loading && !error && (
             <div className="rounded-xl border border-dashed border-slate-200 p-4 text-center">
               <p className="text-sm text-ink-muted">
                 Ask a question about the current page or your stored memories.
@@ -75,7 +100,7 @@ export default function CompanionSidePanel() {
                 aria-hidden="true"
                 className="inline-block h-4 w-4 animate-spin rounded-full border-2 border-brand-100 border-t-brand-600"
               />
-              Thinking (mock)…
+              Searching your memories…
             </div>
           )}
 
@@ -84,10 +109,10 @@ export default function CompanionSidePanel() {
               role="alert"
               className="rounded-xl border border-red-100 bg-red-50 p-3 text-sm text-red-600"
             >
-              The mock assistant failed.{' '}
+              {error}{' '}
               <button
                 type="button"
-                onClick={() => setError(false)}
+                onClick={() => setError(null)}
                 className="font-medium underline"
               >
                 Dismiss
@@ -95,31 +120,46 @@ export default function CompanionSidePanel() {
             </div>
           )}
 
-          {answer && (
-            <div className="rounded-xl border border-slate-100 bg-slate-50 p-3">
+          {result && (
+            <div data-testid="panel-result">
               <span
-                data-testid="panel-mock-badge"
-                className="mb-2 inline-flex items-center gap-1 rounded-full bg-warn-100 px-2 py-0.5 text-xs font-semibold text-warn-700"
+                data-testid="panel-confidence-badge"
+                className={`mb-2 inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-semibold ${
+                  CONFIDENCE_LABEL[result.confidence].className
+                }`}
               >
-                ⚠️ Mock answer
+                {CONFIDENCE_LABEL[result.confidence].text}
               </span>
-              <p className="whitespace-pre-line text-sm text-ink">{answer.text}</p>
-              {answer.refs.length > 0 && (
-                <div className="mt-2 border-t border-slate-200 pt-2">
-                  <div className="mb-1 text-xs font-semibold text-ink-muted">Source references</div>
-                  <ul className="space-y-0.5 text-xs text-brand-700">
-                    {answer.refs.map((r) => (
-                      <li key={r} className="truncate">
-                        📄 {r}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
+
+              {result.evidence.length === 0 ? (
+                <p className="text-sm text-ink" data-testid="panel-no-evidence">
+                  No stored memory matched this question.
+                </p>
+              ) : (
+                <ul className="space-y-2" data-testid="panel-evidence">
+                  {result.evidence.map((item: AskEvidence) => (
+                    <li
+                      key={item.chunk_id}
+                      className="rounded-xl border border-slate-100 bg-slate-50 p-3"
+                    >
+                      <div className="mb-1 text-xs font-semibold text-ink">
+                        {item.source_title || item.domain || 'Stored memory'}
+                      </div>
+                      <p className="whitespace-pre-line text-sm text-ink">{item.passage}</p>
+                      <Link
+                        to={`/memories/${encodeURIComponent(item.memory_id)}`}
+                        className="mt-1 inline-block text-xs text-brand-700 hover:underline"
+                      >
+                        Open memory
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
               )}
             </div>
           )}
 
-          {/* Related memories */}
+          {/* Related memories — the passages this answer was built from */}
           <div>
             <div className="mb-2 text-xs font-semibold uppercase tracking-wide text-ink-muted">
               Related memories
@@ -127,14 +167,15 @@ export default function CompanionSidePanel() {
             {related.length === 0 ? (
               <p className="text-xs text-ink-muted">No related memories yet.</p>
             ) : (
-              <ul className="space-y-1.5">
+              <ul className="space-y-1.5" data-testid="panel-related">
                 {related.map((m) => (
-                  <li key={m.id}>
+                  <li key={m.chunk_id}>
                     <Link
-                      to={`/memory/${m.id}`}
-                      className="block truncate rounded-lg border border-slate-100 px-2.5 py-2 text-xs text-ink hover:border-brand-200 hover:bg-slate-50"
+                      to={`/memories/${encodeURIComponent(m.memory_id)}`}
+                      className="block truncate rounded-lg border border-slate-100 px-2.5 py-2 text-xs text-ink-muted hover:border-brand-200 hover:text-ink"
                     >
-                      {m.sourceName} • {m.title}
+                      {m.source_title || m.domain || 'Stored memory'} •{' '}
+                      {m.source_type || 'memory'}
                     </Link>
                   </li>
                 ))}
@@ -165,26 +206,16 @@ export default function CompanionSidePanel() {
             <button
               type="submit"
               disabled={loading || question.trim().length === 0}
-              className="rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:opacity-50"
+              className="rounded-lg bg-brand-700 px-3 py-2 text-sm font-medium text-white hover:bg-brand-600 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              Ask
+              {loading ? 'Searching…' : 'Ask'}
             </button>
           </div>
-          <div className="mt-2 flex justify-between text-xs">
-            <button
-              type="button"
-              onClick={() => {
-                setLoading(true);
-                window.setTimeout(() => {
-                  setLoading(false);
-                  setError(true);
-                }, 300);
-              }}
-              className="text-ink-muted hover:text-red-600 hover:underline"
-            >
-              Simulate error
-            </button>
-            <Link to="/ask" className="text-brand-700 hover:underline">
+          <p className="mt-2 text-xs text-ink-muted">
+            Shows the stored passages that match — RecallAI does not generate answers.
+          </p>
+          <div className="mt-1 text-right">
+            <Link to="/ask" className="text-xs text-brand-700 hover:underline">
               Open full Ask →
             </Link>
           </div>
